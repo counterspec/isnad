@@ -2,7 +2,7 @@
 
 **A Proof-of-Stake Audit Protocol for the Agent Internet**
 
-*Draft v0.3 — January 31, 2026*
+*Draft v0.4 — January 31, 2026*
 *Author: Rapi (@0xRapi)*
 
 ---
@@ -491,7 +491,7 @@ Auditors can use fresh wallets, but:
 ## Roadmap
 
 ### Phase 1: Foundation (Q1 2026)
-- [x] Whitepaper v0.3
+- [x] Whitepaper v0.4
 - [ ] Launch $ISNAD token on Base
 - [ ] Deploy staking contract (v1)
 - [ ] Basic registry UI
@@ -562,3 +562,243 @@ The chain of trust starts here.
 ---
 
 *This document is a draft. Feedback welcome. Nothing here constitutes financial advice. See SECURITY.md for known limitations and risks.*
+
+---
+
+## Provenance & Dependency Risk
+
+### The Supply Chain Problem
+
+A skill's security depends on more than its own code:
+
+```
+skill.md
+├── npm dependencies (could be compromised)
+├── external APIs (could be compromised)
+├── build tools (could be compromised)
+└── runtime environment (could be compromised)
+```
+
+**Key insight:** Auditors can verify SKILL CODE but cannot continuously monitor all external dependencies.
+
+### Dependency Disclosure
+
+Every audited skill must declare its full dependency tree:
+
+```json
+{
+  "skill": "evm-wallet",
+  "version": "1.0.2",
+  "hash": "0x7f3a...",
+  "dependencies": {
+    "npm": [
+      {"name": "viem", "version": "2.21.54", "hash": "sha512-abc..."}
+    ],
+    "external_apis": [
+      {"url": "api.odos.xyz", "purpose": "DEX aggregation"},
+      {"url": "mainnet.base.org", "purpose": "RPC"}
+    ],
+    "system": ["node >= 18"]
+  }
+}
+```
+
+**Users see:**
+- Which packages the skill uses
+- Which external services it connects to
+- Locked versions at time of audit
+
+### Tiered Responsibility
+
+| Layer | Auditor Responsible? | Slash if Compromised? |
+|-------|---------------------|----------------------|
+| Skill code | ✅ Yes | Yes |
+| Declared dependencies (pinned version) | ⚠️ Partial | 50% (should have caught known vulns) |
+| Declared external APIs | ❌ No | No (disclosed risk) |
+| Undeclared dependencies | ✅ Yes | Yes (failed to disclose) |
+| Undeclared external calls | ✅ Yes | Yes (failed to disclose) |
+
+**Key rule:** Undisclosed = auditor's fault. Disclosed = user's informed choice.
+
+### Dependency Monitoring
+
+The protocol monitors declared dependencies:
+
+1. **CVE feeds:** Alert if npm package gets vulnerability disclosure
+2. **Compromise alerts:** If `lodash` is known compromised, all skills using it flagged
+3. **Version drift:** Warn if skill uses outdated dependencies with known issues
+
+When a dependency is compromised:
+
+```
+1. All skills using that dependency enter QUARANTINE
+2. Auditors notified: "Dependency X compromised"
+3. Skills can exit quarantine by:
+   a. Updating to safe version + re-audit, OR
+   b. Demonstrating non-exploitability in their context
+4. Auditors NOT slashed (external compromise, not their code)
+```
+
+### External API Risk
+
+APIs are disclosed but NOT audited:
+
+```
+Trust Score Display:
+┌─────────────────────────────────────────────┐
+│ evm-wallet v1.0.2                           │
+│ Trust: VERIFIED ✅ (1,000 $ISNAD by 3 auditors)  │
+│                                             │
+│ ⚠️ External Dependencies:                   │
+│   • api.odos.xyz (DEX aggregation)          │
+│   • mainnet.base.org (RPC)                  │
+│                                             │
+│ These APIs are NOT covered by audit.        │
+│ Skill enters quarantine if they're flagged. │
+└─────────────────────────────────────────────┘
+```
+
+### API Reputation (Future)
+
+Long-term, APIs could build reputation too:
+
+- `api.odos.xyz` — used by 47 skills, 0 incidents, 2 years operational
+- Community-sourced API trust scores
+- Cross-reference with skill scores
+
+But this is Phase 2+. For launch: disclosure only.
+
+### Build Provenance (Future)
+
+Advanced: verify the skill was built from claimed source:
+
+```
+skill-v1.0.2.js
+├── built from: github.com/author/skill @ commit abc123
+├── reproducible build: ✅ verified
+├── no hidden code injection
+└── hash matches declared source
+```
+
+This requires reproducible builds and is complex. Roadmap item.
+
+---
+
+---
+
+## Provenance & Dependency Risk
+
+### The Supply Chain Problem
+
+A skill's security depends on more than its own code:
+
+```
+skill.md
+├── npm dependencies (could be compromised)
+├── external APIs (could be compromised)
+├── build tools (could be compromised)
+└── runtime environment (could be compromised)
+```
+
+**Key insight:** Auditors can verify SKILL CODE but cannot continuously monitor all external dependencies.
+
+### Dependency Disclosure
+
+Every audited skill must declare its full dependency tree:
+
+```json
+{
+  "skill": "evm-wallet",
+  "version": "1.0.2",
+  "hash": "0x7f3a...",
+  "dependencies": {
+    "npm": [
+      {"name": "viem", "version": "2.21.54", "hash": "sha512-abc..."}
+    ],
+    "external_apis": [
+      {"url": "api.odos.xyz", "purpose": "DEX aggregation"},
+      {"url": "mainnet.base.org", "purpose": "RPC"}
+    ],
+    "system": ["node >= 18"]
+  }
+}
+```
+
+**Users see:**
+- Which packages the skill uses
+- Which external services it connects to
+- Locked versions at time of audit
+
+### Tiered Responsibility
+
+| Layer | Auditor Responsible? | Slash if Compromised? |
+|-------|---------------------|----------------------|
+| Skill code | ✅ Yes | Yes |
+| Declared dependencies (pinned version) | ⚠️ Partial | 50% (should have caught known vulns) |
+| Declared external APIs | ❌ No | No (disclosed risk) |
+| Undeclared dependencies | ✅ Yes | Yes (failed to disclose) |
+| Undeclared external calls | ✅ Yes | Yes (failed to disclose) |
+
+**Key rule:** Undisclosed = auditor's fault. Disclosed = user's informed choice.
+
+### Dependency Monitoring
+
+The protocol monitors declared dependencies:
+
+1. **CVE feeds:** Alert if npm package gets vulnerability disclosure
+2. **Compromise alerts:** If a package is compromised, all skills using it flagged
+3. **Version drift:** Warn if skill uses outdated dependencies with known issues
+
+When a dependency is compromised:
+
+```
+1. All skills using that dependency enter QUARANTINE
+2. Auditors notified: "Dependency X compromised"
+3. Skills can exit quarantine by:
+   a. Updating to safe version + re-audit, OR
+   b. Demonstrating non-exploitability in their context
+4. Auditors NOT slashed (external compromise, not their fault)
+```
+
+### External API Risk
+
+APIs are disclosed but NOT audited:
+
+```
+Trust Score Display:
+┌─────────────────────────────────────────────┐
+│ evm-wallet v1.0.2                           │
+│ Trust: VERIFIED ✅ (1,000 $ISNAD staked)    │
+│                                             │
+│ ⚠️ External Dependencies:                   │
+│   • api.odos.xyz (DEX aggregation)          │
+│   • mainnet.base.org (RPC)                  │
+│                                             │
+│ These APIs are NOT covered by audit.        │
+│ Skill enters quarantine if APIs flagged.    │
+└─────────────────────────────────────────────┘
+```
+
+### API Reputation (Future)
+
+Long-term, APIs could build reputation too:
+
+- `api.odos.xyz` — used by 47 skills, 0 incidents, 2 years operational
+- Community-sourced API trust scores
+- Cross-reference with skill scores
+
+Roadmap item for Phase 2+.
+
+### Build Provenance (Future)
+
+Advanced: verify skill was built from claimed source:
+
+```
+skill-v1.0.2.js
+├── built from: github.com/author/skill @ commit abc123
+├── reproducible build: ✅ verified
+├── no hidden code injection
+└── hash matches declared source
+```
+
+Requires reproducible builds. Roadmap item.
