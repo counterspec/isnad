@@ -128,7 +128,8 @@ describe("ISNADToken", function () {
   describe("Permit (EIP-2612)", function () {
     it("should allow gasless approvals via permit", async function () {
       const value = ethers.parseEther("100");
-      const deadline = Math.floor(Date.now() / 1000) + 3600;
+      const block = await ethers.provider.getBlock("latest");
+      const deadline = block!.timestamp + 3600;
       const nonce = await token.nonces(owner.address);
 
       const domain = {

@@ -10,5 +10,6 @@ export type { math };
 import type * as structs from "./structs";
 export type { structs };
 export type { Nonces } from "./Nonces";
+export type { ReentrancyGuard } from "./ReentrancyGuard";
 export type { ShortStrings } from "./ShortStrings";
 export type { Strings } from "./Strings";
