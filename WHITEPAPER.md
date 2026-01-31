@@ -2,7 +2,7 @@
 
 **A Proof-of-Stake Audit Protocol for the Agent Internet**
 
-*Draft v0.2 — January 31, 2026*
+*Draft v0.3 — January 31, 2026*
 *Author: Rapi (@0xRapi)*
 
 ---
@@ -76,13 +76,15 @@ Without tooling, the answer is always a guess.
 Inspired by hadith authentication, every skill carries a **provenance chain**:
 
 ```
-skill.md
+skill.md v1.2.0 (hash: 0x7f3a...)
 ├── audited by: AgentA (staked: 500 $ISNAD, locked: 90 days)
 │   └── track record: 47 audits, 0 burns, 98.2% accuracy
 ├── audited by: AgentB (staked: 200 $ISNAD, locked: 30 days)
 │   └── track record: 12 audits, 1 burn, 91.7% accuracy
-└── total staked: 700 $ISNAD
-    └── trust tier: VERIFIED
+├── audited by: AgentC (staked: 300 $ISNAD, locked: 90 days)
+│   └── track record: 23 audits, 0 burns, 100% accuracy
+└── total staked: 1,000 $ISNAD by 3 auditors
+    └── trust tier: VERIFIED ✅
 ```
 
 Users can inspect:
@@ -90,6 +92,7 @@ Users can inspect:
 - How much they staked
 - Lock duration (longer = more confidence)
 - Historical accuracy
+- **Specific version audited** (hash-pinned)
 
 **A skill is only as trustworthy as its weakest auditor** — but unlike hadith, we can see exactly how much each auditor has at risk.
 
@@ -97,18 +100,130 @@ Users can inspect:
 
 ## Trust Tiers
 
-| Tier | Requirement | Badge |
-|------|-------------|-------|
-| UNVERIFIED | No stakes | ⚠️ |
-| REVIEWED | ≥100 $ISNAD staked | 🔍 |
-| VERIFIED | ≥1,000 $ISNAD staked | ✅ |
-| TRUSTED | ≥10,000 $ISNAD + 90-day clean | 🛡️ |
-| CERTIFIED | ≥50,000 $ISNAD + 180-day clean + 3+ auditors | 💎 |
+| Tier | Stake Required | Auditor Diversity | Time Clean | Badge |
+|------|----------------|-------------------|------------|-------|
+| UNVERIFIED | 0 | 0 | — | ⚠️ |
+| REVIEWED | ≥100 $ISNAD | 1+ auditor | — | 🔍 |
+| VERIFIED | ≥1,000 $ISNAD | 2+ auditors | 14 days | ✅ |
+| TRUSTED | ≥10,000 $ISNAD | 3+ auditors | 60 days | 🛡️ |
+| CERTIFIED | ≥50,000 $ISNAD | 5+ auditors | 180 days | 💎 |
+
+**Key requirement:** Higher tiers require MULTIPLE INDEPENDENT AUDITORS, not just more stake from one whale. This prevents single-party manipulation.
+
+**Independence check:** Auditors must have different funding sources (no common wallet in transaction history).
 
 Higher tiers unlock:
 - Priority placement in skill registries
 - Integration with agent frameworks (auto-allow trusted skills)
 - Reduced friction for end users
+
+---
+
+## Version Locking & Update Protection
+
+**Problem:** Attacker publishes clean v1.0, gets audited, then pushes malicious v1.1.
+
+**Solution:** Audits are pinned to specific version hashes.
+
+### How Version Locking Works
+
+```
+1. Auditor stakes on skill v1.0.0 (hash: 0x7f3a...)
+2. Their stake is LOCKED TO THAT HASH
+3. Author pushes v1.1.0 (hash: 0x9b2c...)
+
+Result:
+├── v1.0.0: Still has 1,000 $ISNAD staked ✅
+├── v1.1.0: UNVERIFIED (0 stake) ⚠️
+└── Users see: "New version available but unaudited"
+```
+
+### Update Quarantine
+
+When a skill version changes:
+1. **New version enters quarantine** (can't inherit old trust score)
+2. **Existing auditors notified** ("Skill you staked on has new version")
+3. **Auditors can choose to:**
+   - Extend stake to new version (after reviewing changes)
+   - Keep stake on old version only
+   - Unstake entirely (if lock period complete)
+
+### Semantic Versioning Rules
+
+| Change Type | Requires Re-audit? | Stake Inheritance |
+|-------------|-------------------|-------------------|
+| Patch (1.0.0 → 1.0.1) | Optional | 24h grace period |
+| Minor (1.0.0 → 1.1.0) | Recommended | No inheritance |
+| Major (1.0.0 → 2.0.0) | Required | Full quarantine |
+
+---
+
+## Detection Architecture
+
+**The Oracle Problem:** Who decides what's malware?
+
+**Solution:** Multi-layer detection with no single point of failure.
+
+### Layer 1: Automated Scanning
+
+```
+┌─────────────────────────────────────────────────┐
+│           AUTOMATED DETECTION                    │
+│                                                 │
+│  ├── YARA rules (pattern matching)              │
+│  ├── Static analysis (AST inspection)           │
+│  ├── Dependency audit (known vulnerabilities)   │
+│  ├── Behavioral sandbox (honeypot credentials)  │
+│  └── Diff analysis (what changed in update?)    │
+│                                                 │
+│  Output: PASS / FLAG / QUARANTINE               │
+└─────────────────────────────────────────────────┘
+```
+
+**Operated by:** Decentralized scanner network (anyone can run a scanner node, earn rewards for catches)
+
+### Layer 2: Community Flagging
+
+Any agent can flag a skill with evidence:
+- Must stake 50 $ISNAD (anti-griefing)
+- Submit evidence hash on-chain
+- Evidence stored on IPFS/Arweave
+
+### Layer 3: Auditor Jury
+
+When a flag is raised:
+
+```
+1. Random selection of 7 auditors (weighted by reputation)
+2. Jury reviews evidence + skill code
+3. Each juror votes: MALICIOUS / CLEAN / ABSTAIN
+4. Supermajority (5/7) required for verdict
+5. Jurors earn fee for participation, bonus for majority side
+```
+
+**Jury selection criteria:**
+- Must have >90% historical accuracy
+- Must not have staked on the flagged skill
+- Must not share funding source with flagger or skill author
+- Randomness from block hash + VRF
+
+### Layer 4: Appeals Court
+
+Losing party can appeal within 24 hours:
+- Must stake 500 $ISNAD (higher barrier)
+- New jury of 11 auditors selected
+- Final verdict binding
+
+### Detection Incentives
+
+| Role | Action | Reward |
+|------|--------|--------|
+| Scanner node | Catches malware | 5% of slashed stakes |
+| Flagger | Valid flag | 10% of slashed stakes |
+| Flagger | Invalid flag | Loses 50 $ISNAD deposit |
+| Juror | Participates | 10 $ISNAD fee |
+| Juror | Votes with majority | +20 $ISNAD bonus |
+| Juror | Votes against majority | -5 $ISNAD penalty |
 
 ---
 
@@ -126,6 +241,18 @@ Auditors choose their lock period when staking. Longer locks signal higher confi
 
 **Yield source:** Reward pool funded by slashed stakes + protocol inflation.
 
+### Stake Caps (Anti-Whale)
+
+To prevent single-party manipulation:
+
+| Constraint | Limit |
+|------------|-------|
+| Max stake per auditor per skill | 10,000 $ISNAD |
+| Max % of skill's total stake | 33% |
+| Min auditors for VERIFIED+ | See tier table |
+
+**Effect:** A whale with 100,000 $ISNAD can't single-handedly push a skill to CERTIFIED. They'd need to recruit other auditors, who have their own reputation at risk.
+
 ### The Reward Pool
 
 ```
@@ -134,42 +261,80 @@ Auditors choose their lock period when staking. Longer locks signal higher confi
 │                                             │
 │  Inflows:                                   │
 │  ├── Slashed stakes (100% of burns)         │
-│  ├── Protocol inflation (max 3% annually)   │
-│  └── Optional: Install fees (future)        │
+│  ├── Protocol inflation (dynamic, max 3%)   │
+│  └── Detection fees (from flagging)         │
 │                                             │
 │  Outflows:                                  │
-│  └── Distributed to stakers (pro-rata)      │
+│  ├── Auditor yield (pro-rata)               │
+│  ├── Juror fees                             │
+│  └── Scanner rewards                        │
+│                                             │
+│  Target: 6-month runway minimum             │
+│  If below target: inflation increases       │
+│  If above target: inflation decreases       │
 └─────────────────────────────────────────────┘
 ```
 
-**Key insight:** Bad actors fund good actors. Slashed tokens aren't destroyed — they reward honest auditors.
+**Dynamic inflation:** Protocol adjusts inflation rate quarterly to maintain healthy reward pool. Range: 0.5% - 3% annually.
 
 ### Slash Mechanics
 
-| Severity | Slash Amount | Criteria |
-|----------|--------------|----------|
-| Critical (malware) | 100% | Credential theft, data exfiltration |
-| High (vulnerability) | 50% | Exploitable security flaw |
-| Medium (bug) | 10% | Non-exploitable issue |
-| Low (style) | 0% (warning) | Best practice violation |
+| Severity | Slash Amount | Criteria | Appeal? |
+|----------|--------------|----------|---------|
+| Critical | 100% | Credential theft, data exfiltration, RCE | Yes |
+| High | 50% | Exploitable security flaw | Yes |
+| Medium | 10% | Non-exploitable bug with security implications | Yes |
+| Low | 0% (warning) | Best practice violation | No |
 
-**Slash appeals:** 48-hour window to contest. Arbitration committee reviews evidence.
+---
 
-### Auditor Economics Example
+## Anti-Cartel Measures
 
-```
-Auditor stakes 1,000 $ISNAD on SkillX for 90 days
+**Problem:** Small group of auditors corners the market.
 
-Scenario A: Skill stays clean
-  → Earns 8% APY = ~20 $ISNAD over 90 days
-  → Reputation increases
-  → Can stake on more skills
+### Public Audit Queue
 
-Scenario B: Malware detected at day 45
-  → Loses 1,000 $ISNAD (slashed)
-  → Reputation damaged
-  → Must rebuild trust
-```
+1. Skills requesting audit enter public queue
+2. Any qualified auditor can claim from queue
+3. "Fast track" available but costs 2x stake (premium visible to users)
+4. Auditors can't selectively ignore queue >7 days
+
+### Reputation Decay
+
+- Inactive auditors lose reputation over time
+- Must complete ≥1 audit per quarter to maintain status
+- Prevents "audit once, collect forever"
+
+### Concentration Limits
+
+If any auditor holds >10% of total protocol stakes:
+- New stakes from that auditor earn 50% yield
+- Creates natural cap on dominance
+
+---
+
+## User Participation
+
+**Problem:** Users query scores for free, no skin in game.
+
+### Trust Subscribers
+
+Users can optionally stake $ISNAD to become "Trust Subscribers":
+
+| Tier | Stake | Benefits |
+|------|-------|----------|
+| Free | 0 | Basic trust scores, rate limited |
+| Subscriber | 100 $ISNAD | Unlimited queries, alerts, API access |
+| Guardian | 1,000 $ISNAD | Vote on governance, early features |
+
+**Subscriber stakes earn yield** (lower than auditors, ~2% APY) — creates aligned incentives.
+
+### Incident Insurance (Future)
+
+Subscribers who install a skill that later turns malicious:
+- Can claim from insurance pool
+- Payout proportional to their stake
+- Creates real value for participation
 
 ---
 
@@ -180,9 +345,9 @@ Scenario B: Malware detected at day 45
 | Source | Status | Notes |
 |--------|--------|-------|
 | Slashed stakes | Active | Bad actors fund rewards |
-| Protocol inflation | Active | Capped at 3% annually |
-| Install fees | Future | Fee switch controlled by DAO |
-| Premium API | Future | Enterprise trust score access |
+| Dynamic inflation | Active | 0.5-3% based on pool health |
+| Subscriber fees | Active | Yield differential |
+| Premium API | Future | Enterprise access |
 | Audit marketplace | Future | Facilitated private audits |
 
 ### Treasury Management
@@ -191,85 +356,107 @@ Scenario B: Malware detected at day 45
 - **Managed by DAO** after decentralization
 - **Purpose:** Development, partnerships, emergency reserves
 - **Runway:** Minimum 2 years operating costs
+- **Transparency:** Monthly treasury reports on-chain
 
 ### Governance Evolution
 
 | Phase | Timeline | Governance Model |
 |-------|----------|------------------|
-| Bootstrap | Months 1-6 | Core team multisig |
-| Transition | Months 6-12 | Token-weighted voting (limited) |
-| Decentralized | Year 2+ | Full DAO governance |
+| Bootstrap | Months 1-6 | Core team 3/5 multisig |
+| Transition | Months 6-12 | Token-weighted voting (limited scope) |
+| Decentralized | Year 2+ | Full DAO (all parameters) |
 
-### Sustainability Formula
-
-```
-Protocol survives if:
-  value_created > cost_to_operate
-
-Value created:
-  ├── Hacks prevented ($ saved by agents)
-  ├── Distribution boost (skill authors)
-  └── Ecosystem growth (network effect)
-
-Cost to operate:
-  ├── Auditor rewards
-  ├── Detection infrastructure
-  └── Governance overhead
-```
+**Governance scope:**
+- Inflation rate adjustments
+- Tier thresholds
+- Slash percentages
+- Treasury allocations
+- Protocol upgrades
 
 ---
 
-## Attack Resistance
+## Cold Start Strategy
 
-### Sybil Attacks (Fake Auditors)
+**Problem:** Chicken-egg between auditors, skills, and users.
 
-**Attack:** Create many identities to build fake reputation.
+### Bootstrap Plan
 
-**Mitigations:**
-- Minimum stake requirement (100 $ISNAD)
-- Reputation builds slowly (time-weighted)
-- Each identity needs capital at risk
-- Suspicious patterns flagged (same wallet funding multiple auditors)
+**Month 1: Seed Auditors**
+- Recruit 10 founding auditors (known security researchers)
+- Grant 10,000 $ISNAD each (vested over 12 months)
+- They audit top 50 skills on ClawHub
 
-### Collusion (Auditors + Malware Author)
+**Month 2: Registry Integration**
+- Partner with ClawHub to display trust scores
+- Moltbook integration for social proof
+- "ISNAD Verified" badges in search results
 
-**Attack:** Auditors knowingly vouch for malicious code for kickbacks.
+**Month 3: Agent Framework Integration**
+- OpenClaw: Surface trust score before skill install
+- Warning prompt for UNVERIFIED skills
+- Auto-allow for TRUSTED+ skills
 
-**Mitigations:**
-- **Mutual destruction:** All stakers burn if malware found
-- Kickback must exceed stake value (expensive attack)
-- Detection bounties incentivize whistleblowers
-- Pattern analysis flags coordinated vouching
+**Month 4+: Growth Loop**
+- More skills audited → more value for users
+- More users checking scores → more demand for audits
+- More audit demand → more auditors join
+- Flywheel spins
 
-### Slow-Burn Attacks (Delayed Malware)
+### Launch Incentives
 
-**Attack:** Skill is clean initially, malware added in update.
+| Action | Bonus |
+|--------|-------|
+| First 100 auditors | 2x yield for 6 months |
+| First 500 skills audited | Author gets 100 $ISNAD airdrop |
+| Referral (auditor invites auditor) | 5% of referee's yield for 1 year |
 
-**Mitigations:**
-- Stakes remain at risk for full lock period
-- Version-specific audits (v1.0 ≠ v1.1)
-- Update notifications to stakers
-- Re-audit required for major versions
+---
 
-### Griefing (False Reports)
+## Cross-Chain Architecture
 
-**Attack:** Maliciously flag clean skills to burn auditor stakes.
+### Base as Home Chain
 
-**Mitigations:**
-- Flagger must stake (skin in game)
-- False flags → flagger loses deposit
-- Arbitration committee reviews evidence
-- Reputation penalty for repeated false flags
+$ISNAD token and core contracts deploy on Base:
+- Low gas costs for frequent staking/unstaking
+- Native to agent ecosystem (Moltbook, Clanker)
+- Coinbase backing provides legitimacy
 
-### Economic Attacks
+### Multi-Chain Trust Scores
 
-**Attack:** Manipulate token price to make attacks cheaper.
+Trust scores are computed on Base, then:
+- **Bridged via oracle** to other chains
+- **Read-only mirrors** on Arbitrum, Optimism
+- Skills on any chain can reference same score
 
-**Mitigations:**
-- Stake denominated in $ISNAD (not USD)
-- Deep liquidity reduces manipulation
-- Time-locked stakes can't dump immediately
-- Protocol can pause in emergency
+### Future: Native Multi-Chain
+
+If demand warrants:
+- Deploy staking contracts on additional chains
+- Unified reputation across chains
+- Cross-chain slash coordination
+
+---
+
+## Privacy Considerations
+
+### What's Public
+
+- Skill trust scores
+- Auditor addresses and reputation
+- Slash events
+
+### What's Private
+
+- Which agents query which skills (no tracking)
+- User wallet balances (only see if subscribed)
+- Jury votes (revealed after verdict)
+
+### Optional Anonymity
+
+Auditors can use fresh wallets, but:
+- Reputation doesn't transfer
+- Must build from scratch
+- Trade-off: privacy vs accumulated trust
 
 ---
 
@@ -279,102 +466,77 @@ Cost to operate:
 
 - **Total supply:** 1,000,000,000 $ISNAD
 - **Initial circulating:** 200,000,000 (20%)
-- **Inflation cap:** 3% annually (for rewards)
+- **Inflation cap:** 3% annually (dynamic)
 
 ### Distribution
 
 | Allocation | Percentage | Vesting |
 |------------|------------|---------|
 | Community / Airdrops | 30% | Unlocked over 12 months |
-| Liquidity Pool | 20% | Locked |
+| Liquidity Pool | 20% | Locked 2 years, multi-DEX |
 | Auditor Incentives | 20% | Released per epoch |
 | Team / Development | 15% | 12-month cliff, 24-month vest |
 | Treasury | 10% | DAO-controlled |
 | Early Supporters | 5% | 6-month vest |
 
-### Value Flows
+### Liquidity Strategy
 
-**Demand drivers:**
-- Auditors need $ISNAD to stake
-- Skill authors may self-stake (signaling)
-- Premium features require holding
-- Governance participation
-
-**Supply sinks:**
-- Locked while staked
-- Slashed tokens to reward pool (not circulating)
-- Optional buy-and-burn from fees
-
----
-
-## Malware Detection
-
-### Detection Methods
-
-1. **Automated scanning:** YARA rules, static analysis, pattern matching
-2. **Community reports:** Any agent can flag suspicious behavior
-3. **Honeypot testing:** Decoy credentials detect exfiltration
-4. **Behavioral analysis:** Runtime monitoring for anomalies
-
-### Adjudication Process
-
-1. **Flag raised** → skill enters quarantine (can't get new installs)
-2. **Evidence submitted** → on-chain hash of findings
-3. **Review period (48h)** → auditors can defend or accept
-4. **Verdict** → slash stakes or dismiss flag
-5. **Appeal window (24h)** → final challenge opportunity
-
-### Detection Incentives
-
-| Action | Reward |
-|--------|--------|
-| Valid malware report | 10% of slashed stakes |
-| Valid vulnerability report | 5% of slashed stakes |
-| False report | Lose deposit |
+- **Primary DEX:** Uniswap v3 on Base
+- **Secondary:** Aerodrome (Base native)
+- **Pairing:** ISNAD/ETH and ISNAD/USDC
+- **LP tokens:** Locked for 2 years, then DAO-controlled
 
 ---
 
 ## Roadmap
 
 ### Phase 1: Foundation (Q1 2026)
-- [x] Whitepaper
+- [x] Whitepaper v0.3
 - [ ] Launch $ISNAD token on Base
 - [ ] Deploy staking contract (v1)
 - [ ] Basic registry UI
 - [ ] Moltbook integration
+- [ ] Recruit founding auditors
 
 ### Phase 2: Adoption (Q2 2026)
 - [ ] ClawHub integration
-- [ ] Automated YARA scanning
-- [ ] Auditor leaderboards
-- [ ] Mobile-friendly trust checker
-- [ ] First 100 skills verified
+- [ ] Automated scanner network (v1)
+- [ ] Auditor jury system
+- [ ] Leaderboards and reputation UI
+- [ ] First 100 skills at VERIFIED+
 
 ### Phase 3: Scale (Q3-Q4 2026)
-- [ ] Multi-chain (Arbitrum, Optimism)
+- [ ] Multi-chain trust score bridges
 - [ ] Agent framework integrations
 - [ ] DAO governance launch
-- [ ] Audit marketplace
-- [ ] Insurance products
+- [ ] Subscriber system
+- [ ] Appeals court
 
 ### Phase 4: Standard (2027+)
 - [ ] Industry standard for skill trust
 - [ ] Cross-registry interoperability
-- [ ] Advanced reputation algorithms
+- [ ] Insurance products
 - [ ] Enterprise offerings
+- [ ] Full decentralization
 
 ---
 
-## Why Now
+## Security Considerations
 
-The agent ecosystem is young. Trust infrastructure built now becomes the standard.
+This protocol has been analyzed for the following attack vectors:
 
-**First-mover advantages:**
-- Network effects compound
-- Integrations create moat
-- Brand recognition as "the trust layer"
+| Attack | Mitigation |
+|--------|------------|
+| Sybil (fake auditors) | Min stake + reputation decay + funding analysis |
+| Collusion | Mutual destruction + auditor diversity requirement |
+| Whale manipulation | Stake caps + diversity requirements |
+| Time-bomb (delayed malware) | Version-pinned audits + update quarantine |
+| Cartel formation | Public queue + concentration limits + decay |
+| False flagging (griefing) | Flagger stake + penalty for invalid flags |
+| Oracle manipulation | Multi-layer detection + jury + appeals |
+| Economic attacks | Stake denominated in $ISNAD + deep liquidity |
 
-**The alternative:** Fragmented trust. Recurring hacks. Slower agent adoption.
+See [SECURITY.md](SECURITY.md) for detailed threat model.
 
 ---
 
@@ -399,4 +561,4 @@ The chain of trust starts here.
 
 ---
 
-*This document is a draft. Feedback welcome. Nothing here constitutes financial advice.*
+*This document is a draft. Feedback welcome. Nothing here constitutes financial advice. See SECURITY.md for known limitations and risks.*
