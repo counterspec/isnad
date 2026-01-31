@@ -1,67 +1,74 @@
-# $ISNAD: The Trust Layer for AI Agents
+# $ISNAD: The Trust Layer for AI
 
-**A Proof-of-Stake Audit Protocol for the Agent Internet**
+**A Proof-of-Stake Attestation Protocol for the Agent Internet**
 
-*Draft v0.5 — January 31, 2026*
+*Draft v0.6 — January 31, 2026*
 *Author: Rapi (@0xRapi)*
 
 ---
 
 ## Abstract
 
-As AI agents proliferate, they increasingly rely on shared skills, tools, and code from untrusted sources. A single malicious skill can exfiltrate credentials, corrupt data, or compromise entire systems. Yet there is no standardized way to assess trust before installation.
+As AI agents proliferate, they increasingly rely on shared resources—skills, configurations, prompts, and data—from untrusted sources. A single malicious resource can exfiltrate credentials, corrupt data, or compromise entire systems. Yet there is no standardized way to assess trust before consumption.
 
-**$ISNAD** introduces a decentralized trust layer where auditors stake tokens to vouch for code safety. Malicious code burns stakes; clean code earns yield. The result: a market-priced trust signal that scales without central authority.
+**$ISNAD** introduces a decentralized trust layer where auditors stake tokens to attest to resource safety. Malicious resources burn stakes; clean resources earn yield. The result: a market-priced trust signal that scales without central authority.
 
-The name comes from the Islamic scholarly tradition of *isnad* (إسناد) — the chain of transmission used to authenticate hadith. A saying is only as trustworthy as its chain of narrators. $ISNAD applies this ancient wisdom to modern code provenance.
+Resources and attestations are inscribed directly on Base L2, creating a permanent, censorship-resistant record with no external dependencies.
+
+The name comes from the Islamic scholarly tradition of *isnad* (إسناد) — the chain of transmission used to authenticate hadith. A saying is only as trustworthy as its chain of narrators. $ISNAD applies this ancient wisdom to modern AI provenance.
 
 ---
 
 ## The Problem
 
-### The Agent Skill Ecosystem
+### The AI Resource Ecosystem
 
-AI agents extend their capabilities through *skills* — modular code packages that provide new abilities (API integrations, tools, workflows). Popular registries like ClawHub host hundreds of community-contributed skills.
+AI agents extend their capabilities through shared resources:
+- **Skills** — modular code packages (API integrations, tools, workflows)
+- **Configurations** — agent settings, gateway configs, capability definitions
+- **Prompts** — system prompts, personas, behavioral instructions
+- **Memory** — knowledge bases, context files, training data
+- **Models** — fine-tunes, LoRAs, adapters
 
-### The Attack Surface
-
-Skills run with the agent's full permissions. A malicious skill can:
+These resources run with elevated permissions or shape agent behavior. A compromised resource can:
 - Read API keys, tokens, and credentials
 - Exfiltrate private data to external servers
 - Execute arbitrary commands
 - Impersonate the agent to external services
+- Manipulate agent behavior through prompt injection
 
 ### Current Mitigations (All Insufficient)
 
 | Approach | Limitation |
 |----------|------------|
-| Manual code review | Doesn't scale; most agents can't/won't audit |
+| Manual code review | Doesn't scale; most agents can't audit |
 | Central approval process | Bottleneck; single point of failure |
 | Reputation scores | Gameable; new authors can't bootstrap |
 | "Trust the community" | Herding behavior; majority can be wrong |
-| Sandboxing | Incomplete; many skills need real permissions |
+| Sandboxing | Incomplete; many resources need real permissions |
 
 ### The Trust Gap
 
-An agent considering a new skill faces an impossible question: *"Is this safe?"*
+An agent considering any shared resource faces an impossible question: *"Is this safe?"*
 
 Without tooling, the answer is always a guess.
 
 ---
 
-## The Solution: Proof-of-Stake Auditing
+## The Solution: Proof-of-Stake Attestation
 
 ### Core Mechanism
 
-1. **Auditors review skills** and stake $ISNAD tokens to vouch for their safety
-2. **Stakes are locked** for a time period (30-180 days)
-3. **If malware is detected** → staked tokens are slashed
-4. **If skill remains clean** → auditors earn yield from reward pool
-5. **Users check trust scores** (total $ISNAD staked) before installing
+1. **Resources are inscribed** on Base L2 with content and metadata
+2. **Auditors review resources** and stake $ISNAD tokens to attest to their safety
+3. **Stakes are locked** for a time period (30-180 days)
+4. **If issues are detected** → staked tokens are slashed
+5. **If resource remains clean** → auditors earn yield from reward pool
+6. **Consumers check trust scores** (total $ISNAD staked) before using
 
 ### Why This Works
 
-**Skin in the game:** Auditors risk real value when vouching. False vouches have consequences.
+**Skin in the game:** Auditors risk real value when attesting. False attestations have consequences.
 
 **Self-selecting expertise:** Only confident auditors will stake. The market filters for competence.
 
@@ -69,32 +76,198 @@ Without tooling, the answer is always a guess.
 
 **Attack resistant:** Sybil attacks require capital. Collusion burns all colluders.
 
+**Permanently verifiable:** Both resources and attestations live on-chain. No IPFS pinning, no servers to maintain.
+
+---
+
+## Resource Types
+
+ISNAD supports attestation for any content-addressable AI resource:
+
+| Type | Code | Description | Example |
+|------|------|-------------|---------|
+| Skill | `SKILL` | Executable code packages | OpenClaw skills, MCP tools |
+| Config | `CONFIG` | Agent/system configurations | Gateway configs, capability files |
+| Prompt | `PROMPT` | System prompts, personas | SOUL.md, AGENTS.md |
+| Memory | `MEMORY` | Knowledge bases, context | RAG documents, memory files |
+| Model | `MODEL` | Fine-tunes, adapters | LoRAs, model weights |
+| API | `API` | External service attestations | Endpoint integrity |
+| Custom | `0x00-FF` | Future resource types | Extensible |
+
+### Future-Proofing
+
+The protocol reserves type codes `0x00`-`0xFF` for future resource types. New types can be added via governance without protocol upgrades. The inscription format is designed to be forward-compatible.
+
 ---
 
 ## The Isnad Chain
 
-Inspired by hadith authentication, every skill carries a **provenance chain**:
+Inspired by hadith authentication, every resource carries a **provenance chain**:
 
 ```
-skill.md v1.2.0 (hash: 0x7f3a...)
-├── audited by: AgentA (staked: 500 $ISNAD, locked: 90 days)
-│   └── track record: 47 audits, 0 burns, 98.2% accuracy
-├── audited by: AgentB (staked: 200 $ISNAD, locked: 30 days)
-│   └── track record: 12 audits, 1 burn, 91.7% accuracy
-├── audited by: AgentC (staked: 300 $ISNAD, locked: 90 days)
-│   └── track record: 23 audits, 0 burns, 100% accuracy
+resource: weather-skill v1.2.0
+type: SKILL
+hash: 0x7f3a8b2c...
+inscription: base:0x1234...
+
+attestations:
+├── AgentA (staked: 500 $ISNAD, locked: 90 days)
+│   └── track record: 47 attestations, 0 burns, 98.2% accuracy
+├── AgentB (staked: 200 $ISNAD, locked: 30 days)
+│   └── track record: 12 attestations, 1 burn, 91.7% accuracy
+├── AgentC (staked: 300 $ISNAD, locked: 90 days)
+│   └── track record: 23 attestations, 0 burns, 100% accuracy
 └── total staked: 1,000 $ISNAD by 3 auditors
     └── trust tier: VERIFIED ✅
 ```
 
-Users can inspect:
-- Who vouched for the code
+Consumers can inspect:
+- Who attested to the resource
 - How much they staked
 - Lock duration (longer = more confidence)
 - Historical accuracy
-- **Specific version audited** (hash-pinned)
+- **Specific version attested** (hash-pinned)
+- **Full content** (retrievable from inscription)
 
-**A skill is only as trustworthy as its weakest auditor** — but unlike hadith, we can see exactly how much each auditor has at risk.
+**A resource is only as trustworthy as its weakest auditor** — but unlike traditional isnad, we can see exactly how much each auditor has at risk.
+
+---
+
+## On-Chain Inscriptions
+
+### Why Inscriptions?
+
+Traditional approaches store content off-chain (IPFS, servers) with only hashes on-chain. This creates dependencies:
+- IPFS requires pinning services
+- Servers can go offline
+- Content can become unavailable
+
+ISNAD inscribes content directly on Base L2 calldata:
+- **Permanent** — content lives on-chain forever
+- **Censorship-resistant** — no external dependencies
+- **Verifiable** — transaction hash proves content
+- **Cheap** — Base L2 calldata costs ~$0.001-0.01/KB
+
+### Inscription Format (v1)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  ISNAD Inscription v1                                       │
+├─────────────────────────────────────────────────────────────┤
+│  magic:       "ISNAD"           (5 bytes)                   │
+│  version:     0x01              (1 byte)                    │
+│  type:        uint8             (1 byte) - resource type    │
+│  flags:       uint16            (2 bytes) - feature flags   │
+│  metadata:    length-prefixed   (variable) - JSON metadata  │
+│  content:     remaining bytes   (variable) - raw content    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Type Codes
+
+```
+0x01 = SKILL      (executable code)
+0x02 = CONFIG     (configuration files)
+0x03 = PROMPT     (system prompts, personas)
+0x04 = MEMORY     (knowledge, context)
+0x05 = MODEL      (model weights, adapters)
+0x06 = API        (endpoint attestations)
+0x10-0xFF = reserved for future types
+```
+
+### Flags (Bitmask)
+
+```
+0x0001 = COMPRESSED     (content is gzip compressed)
+0x0002 = ENCRYPTED      (content is encrypted, key in metadata)
+0x0004 = CHUNKED        (content split across multiple txs)
+0x0008 = IMMUTABLE      (cannot be superseded)
+0x0010 = DEPRECATED     (superseded by newer version)
+```
+
+### Metadata Schema
+
+```json
+{
+  "name": "weather-skill",
+  "version": "1.2.0",
+  "author": "0x1234...5678",
+  "description": "Get weather forecasts",
+  "license": "MIT",
+  "dependencies": ["0xabcd...", "0xef01..."],
+  "tags": ["weather", "api", "utility"],
+  "homepage": "https://github.com/...",
+  "contentHash": "0x7f3a8b2c...",
+  "contentType": "application/javascript",
+  "encoding": "utf-8",
+  "size": 4096,
+  "chunks": 1,
+  "chunkIndex": 0,
+  "supersedes": null,
+  "ext": {}
+}
+```
+
+### Extension Points
+
+The `ext` field in metadata allows protocol extensions without format changes:
+```json
+{
+  "ext": {
+    "isnad.security": { "sandboxRequired": true },
+    "isnad.compat": { "minVersion": "0.5.0" },
+    "custom.field": { "anything": "here" }
+  }
+}
+```
+
+### Example Inscription
+
+```javascript
+// Inscribing a skill on Base
+const inscription = encodeInscription({
+  type: 0x01, // SKILL
+  flags: 0x0000,
+  metadata: {
+    name: "weather-skill",
+    version: "1.2.0",
+    author: auditorAddress,
+    contentHash: keccak256(content),
+    contentType: "text/markdown",
+    size: content.length
+  },
+  content: skillContent
+});
+
+// Send as calldata
+await wallet.sendTransaction({
+  to: ISNAD_REGISTRY,
+  data: inscription
+});
+```
+
+### Chunked Inscriptions
+
+For content >24KB (Base block limit considerations):
+
+```
+Chunk 0: ISNAD | v1 | SKILL | CHUNKED | {metadata, chunks: 3, chunkIndex: 0} | content[0:24000]
+Chunk 1: ISNAD | v1 | SKILL | CHUNKED | {metadata, chunks: 3, chunkIndex: 1} | content[24000:48000]
+Chunk 2: ISNAD | v1 | SKILL | CHUNKED | {metadata, chunks: 3, chunkIndex: 2} | content[48000:]
+```
+
+Indexers reassemble chunks using `contentHash` + `chunkIndex`.
+
+### Indexer Protocol
+
+Indexers watch for transactions to ISNAD_REGISTRY with `ISNAD` magic:
+
+1. Parse inscription format
+2. Validate contentHash matches content
+3. Store in queryable database
+4. Expose via API: `GET /resource/{hash}` → full content
+
+Anyone can run an indexer. Multiple indexers provide redundancy.
 
 ---
 
@@ -113,54 +286,61 @@ Users can inspect:
 **Independence check:** Auditors must have different funding sources (no common wallet in transaction history).
 
 Higher tiers unlock:
-- Priority placement in skill registries
-- Integration with agent frameworks (auto-allow trusted skills)
+- Priority placement in resource registries
+- Integration with agent frameworks (auto-allow trusted resources)
 - Reduced friction for end users
 
 ---
 
 ## Version Locking & Update Protection
 
-**Problem:** Attacker publishes clean v1.0, gets audited, then pushes malicious v1.1.
+**Problem:** Attacker publishes clean v1.0, gets attested, then pushes malicious v1.1.
 
-**Solution:** Audits are pinned to specific version hashes.
+**Solution:** Attestations are pinned to specific inscription hashes.
 
 ### How Version Locking Works
 
 ```
-1. Auditor stakes on skill v1.0.0 (hash: 0x7f3a...)
-2. Their stake is LOCKED TO THAT HASH
-3. Author pushes v1.1.0 (hash: 0x9b2c...)
+1. Auditor stakes on resource v1.0.0 (inscription: base:0x1234...)
+2. Their stake is LOCKED TO THAT INSCRIPTION
+3. Author inscribes v1.1.0 (inscription: base:0x5678...)
 
 Result:
 ├── v1.0.0: Still has 1,000 $ISNAD staked ✅
 ├── v1.1.0: UNVERIFIED (0 stake) ⚠️
-└── Users see: "New version available but unaudited"
+└── Consumers see: "New version available but unattested"
 ```
 
 ### Update Quarantine
 
-When a skill version changes:
+When a new version is inscribed:
 1. **New version enters quarantine** (can't inherit old trust score)
-2. **Existing auditors notified** ("Skill you staked on has new version")
+2. **Existing auditors notified** ("Resource you staked on has new version")
 3. **Auditors can choose to:**
    - Extend stake to new version (after reviewing changes)
    - Keep stake on old version only
    - Unstake entirely (if lock period complete)
 
-### Semantic Versioning Rules
+### Supersession
 
-| Change Type | Requires Re-audit? | Stake Inheritance |
-|-------------|-------------------|-------------------|
-| Patch (1.0.0 → 1.0.1) | Optional | 24h grace period |
-| Minor (1.0.0 → 1.1.0) | Recommended | No inheritance |
-| Major (1.0.0 → 2.0.0) | Required | Full quarantine |
+Authors can mark old versions deprecated:
+```json
+{
+  "flags": 0x0010,
+  "metadata": {
+    "supersedes": "base:0x1234...",
+    "supersededBy": "base:0x5678..."
+  }
+}
+```
+
+Consumers see warnings when using deprecated versions.
 
 ---
 
 ## Detection Architecture
 
-**The Oracle Problem:** Who decides what's malware?
+**The Oracle Problem:** Who decides what's malicious?
 
 **Solution:** Multi-layer detection with no single point of failure.
 
@@ -174,6 +354,7 @@ When a skill version changes:
 │  ├── Static analysis (AST inspection)           │
 │  ├── Dependency audit (known vulnerabilities)   │
 │  ├── Behavioral sandbox (honeypot credentials)  │
+│  ├── LLM analysis (semantic review)             │
 │  └── Diff analysis (what changed in update?)    │
 │                                                 │
 │  Output: PASS / FLAG / QUARANTINE               │
@@ -184,10 +365,10 @@ When a skill version changes:
 
 ### Layer 2: Community Flagging
 
-Any agent can flag a skill with evidence:
+Any agent can flag a resource with evidence:
 - Must stake 50 $ISNAD (anti-griefing)
-- Submit evidence hash on-chain
-- Evidence stored on IPFS/Arweave
+- Submit evidence inscription on-chain
+- Evidence permanently verifiable
 
 ### Layer 3: Auditor Jury
 
@@ -195,7 +376,7 @@ When a flag is raised:
 
 ```
 1. Random selection of 7 auditors (weighted by reputation)
-2. Jury reviews evidence + skill code
+2. Jury reviews evidence + resource content
 3. Each juror votes: MALICIOUS / CLEAN / ABSTAIN
 4. Supermajority (5/7) required for verdict
 5. Jurors earn fee for participation, bonus for majority side
@@ -203,8 +384,8 @@ When a flag is raised:
 
 **Jury selection criteria:**
 - Must have >90% historical accuracy
-- Must not have staked on the flagged skill
-- Must not share funding source with flagger or skill author
+- Must not have staked on the flagged resource
+- Must not share funding source with flagger or resource author
 - Randomness from block hash + VRF
 
 ### Layer 4: Appeals Court
@@ -213,17 +394,6 @@ Losing party can appeal within 24 hours:
 - Must stake 500 $ISNAD (higher barrier)
 - New jury of 11 auditors selected
 - Final verdict binding
-
-### Detection Incentives
-
-| Role | Action | Reward |
-|------|--------|--------|
-| Scanner node | Catches malware | 5% of slashed stakes |
-| Flagger | Valid flag | 10% of slashed stakes |
-| Flagger | Invalid flag | Loses 50 $ISNAD deposit |
-| Juror | Participates | 10 $ISNAD fee |
-| Juror | Votes with majority | +20 $ISNAD bonus |
-| Juror | Votes against majority | -5 $ISNAD penalty |
 
 ---
 
@@ -247,35 +417,9 @@ To prevent single-party manipulation:
 
 | Constraint | Limit |
 |------------|-------|
-| Max stake per auditor per skill | 10,000 $ISNAD |
-| Max % of skill's total stake | 33% |
+| Max stake per auditor per resource | 10,000 $ISNAD |
+| Max % of resource's total stake | 33% |
 | Min auditors for VERIFIED+ | See tier table |
-
-**Effect:** A whale with 100,000 $ISNAD can't single-handedly push a skill to CERTIFIED. They'd need to recruit other auditors, who have their own reputation at risk.
-
-### The Reward Pool
-
-```
-┌─────────────────────────────────────────────┐
-│              REWARD POOL                     │
-│                                             │
-│  Inflows:                                   │
-│  ├── Slashed stakes (100% of burns)         │
-│  ├── Protocol inflation (dynamic, max 3%)   │
-│  └── Detection fees (from flagging)         │
-│                                             │
-│  Outflows:                                  │
-│  ├── Auditor yield (pro-rata)               │
-│  ├── Juror fees                             │
-│  └── Scanner rewards                        │
-│                                             │
-│  Target: 6-month runway minimum             │
-│  If below target: inflation increases       │
-│  If above target: inflation decreases       │
-└─────────────────────────────────────────────┘
-```
-
-**Dynamic inflation:** Protocol adjusts inflation rate quarterly to maintain healthy reward pool. Range: 0.5% - 3% annually.
 
 ### Slash Mechanics
 
@@ -288,573 +432,151 @@ To prevent single-party manipulation:
 
 ---
 
-## Anti-Cartel Measures
+## Smart Contract Architecture
 
-**Problem:** Small group of auditors corners the market.
+### Core Contracts (Base Mainnet)
 
-### Public Audit Queue
+1. **$ISNAD Token** — ERC20 with permit, snapshot, controlled mint/burn
+2. **Registry** — Inscription index, resource → attestations mapping
+3. **Staking** — Lock management, yield distribution, slash execution
+4. **Detection Oracle** — Flag processing, jury selection, verdict execution
+5. **Reward Pool** — Yield source, inflation management
 
-1. Skills requesting audit enter public queue
-2. Any qualified auditor can claim from queue
-3. "Fast track" available but costs 2x stake (premium visible to users)
-4. Auditors can't selectively ignore queue >7 days
+### Key Functions
 
-### Reputation Decay
+```solidity
+// Attest to a resource
+function attest(
+    bytes32 inscriptionHash,
+    uint256 amount,
+    uint256 lockDays
+) external;
 
-- Inactive auditors lose reputation over time
-- Must complete ≥1 audit per quarter to maintain status
-- Prevents "audit once, collect forever"
+// Extend attestation to new version
+function extendAttestation(
+    bytes32 oldInscription,
+    bytes32 newInscription
+) external;
 
-### Concentration Limits
+// Flag a resource
+function flag(
+    bytes32 inscriptionHash,
+    bytes32 evidenceHash
+) external;
 
-If any auditor holds >10% of total protocol stakes:
-- New stakes from that auditor earn 50% yield
-- Creates natural cap on dominance
-
----
-
-## User Participation
-
-**Problem:** Users query scores for free, no skin in game.
-
-### Trust Subscribers
-
-Users can optionally stake $ISNAD to become "Trust Subscribers":
-
-| Tier | Stake | Benefits |
-|------|-------|----------|
-| Free | 0 | Basic trust scores, rate limited |
-| Subscriber | 100 $ISNAD | Unlimited queries, alerts, API access |
-| Guardian | 1,000 $ISNAD | Vote on governance, early features |
-
-**Subscriber stakes earn yield** (lower than auditors, ~2% APY) — creates aligned incentives.
-
-### Incident Insurance (Future)
-
-Subscribers who install a skill that later turns malicious:
-- Can claim from insurance pool
-- Payout proportional to their stake
-- Creates real value for participation
+// Query trust score
+function getTrustScore(bytes32 inscriptionHash) 
+    external view returns (
+        uint256 totalStaked,
+        uint256 auditorCount,
+        TrustTier tier
+    );
+```
 
 ---
 
-## Sustainability & Longevity
+## Agent Integration
 
-### Protocol Revenue
+### Checking Trust Before Installation
 
-| Source | Status | Notes |
-|--------|--------|-------|
-| Slashed stakes | Active | Bad actors fund rewards |
-| Dynamic inflation | Active | 0.5-3% based on pool health |
-| Subscriber fees | Active | Yield differential |
-| Premium API | Future | Enterprise access |
-| Audit marketplace | Future | Facilitated private audits |
+```python
+from isnad import TrustChecker
 
-### Treasury Management
+checker = TrustChecker()
 
-- **10% of supply** allocated to treasury
-- **Managed by DAO** after decentralization
-- **Purpose:** Development, partnerships, emergency reserves
-- **Runway:** Minimum 2 years operating costs
-- **Transparency:** Monthly treasury reports on-chain
+# Before installing any resource
+resource_hash = "0x7f3a8b2c..."
+trust = checker.get_trust(resource_hash)
 
-### Governance Evolution
+if trust.tier >= TrustTier.VERIFIED:
+    install(resource_hash)
+elif trust.tier == TrustTier.REVIEWED:
+    if user_confirms("Resource is REVIEWED but not VERIFIED. Proceed?"):
+        install(resource_hash)
+else:
+    reject("Resource is UNVERIFIED")
+```
 
-| Phase | Timeline | Governance Model |
-|-------|----------|------------------|
-| Bootstrap | Months 1-6 | Core team 3/5 multisig |
-| Transition | Months 6-12 | Token-weighted voting (limited scope) |
-| Decentralized | Year 2+ | Full DAO (all parameters) |
+### Automatic Trust Policies
 
-**Governance scope:**
-- Inflation rate adjustments
-- Tier thresholds
-- Slash percentages
-- Treasury allocations
-- Protocol upgrades
+```yaml
+# agent-config.yaml
+trust_policy:
+  skills:
+    min_tier: VERIFIED
+    require_auditors: 2
+  configs:
+    min_tier: REVIEWED
+  prompts:
+    min_tier: REVIEWED
+  auto_update:
+    enabled: true
+    require_attestation: true
+```
 
----
+### Becoming an Auditor
 
-## Cold Start Strategy
+Agents can participate as auditors:
 
-**Problem:** Chicken-egg between auditors, skills, and users.
+```python
+from isnad import Auditor
 
-### Bootstrap Plan
+auditor = Auditor(wallet)
 
-**Month 1: Seed Auditors**
-- Recruit 10 founding auditors (known security researchers)
-- Grant 10,000 $ISNAD each (vested over 12 months)
-- They audit top 50 skills on ClawHub
+# Review a resource
+resource = fetch_inscription("base:0x1234...")
+analysis = security_scan(resource.content)
 
-**Month 2: Registry Integration**
-- Partner with ClawHub to display trust scores
-- Moltbook integration for social proof
-- "ISNAD Verified" badges in search results
-
-**Month 3: Agent Framework Integration**
-- OpenClaw: Surface trust score before skill install
-- Warning prompt for UNVERIFIED skills
-- Auto-allow for TRUSTED+ skills
-
-**Month 4+: Growth Loop**
-- More skills audited → more value for users
-- More users checking scores → more demand for audits
-- More audit demand → more auditors join
-- Flywheel spins
-
-### Launch Incentives
-
-| Action | Bonus |
-|--------|-------|
-| First 100 auditors | 2x yield for 6 months |
-| First 500 skills audited | Author gets 100 $ISNAD airdrop |
-| Referral (auditor invites auditor) | 5% of referee's yield for 1 year |
+if analysis.is_safe:
+    # Stake to attest
+    auditor.attest(
+        inscription=resource.hash,
+        amount=500,
+        lock_days=90
+    )
+```
 
 ---
 
-## Cross-Chain Architecture
+## Deployment
 
-### Base as Home Chain
+### Phase 1: Foundation
+- Token deployment on Base
+- Core staking contracts
+- Basic inscription indexer
+- Trust checker UI
 
-$ISNAD token and core contracts deploy on Base:
-- Low gas costs for frequent staking/unstaking
-- Native to agent ecosystem (Moltbook, Clanker)
-- Coinbase backing provides legitimacy
+### Phase 2: Detection
+- Scanner node network
+- Flagging + jury system
+- Automated detection rules
 
-### Multi-Chain Trust Scores
-
-Trust scores are computed on Base, then:
-- **Bridged via oracle** to other chains
-- **Read-only mirrors** on Arbitrum, Optimism
-- Skills on any chain can reference same score
-
-### Future: Native Multi-Chain
-
-If demand warrants:
-- Deploy staking contracts on additional chains
-- Unified reputation across chains
-- Cross-chain slash coordination
-
----
-
-## Privacy Considerations
-
-### What's Public
-
-- Skill trust scores
-- Auditor addresses and reputation
-- Slash events
-
-### What's Private
-
-- Which agents query which skills (no tracking)
-- User wallet balances (only see if subscribed)
-- Jury votes (revealed after verdict)
-
-### Optional Anonymity
-
-Auditors can use fresh wallets, but:
-- Reputation doesn't transfer
-- Must build from scratch
-- Trade-off: privacy vs accumulated trust
-
----
-
-## Tokenomics
-
-### Supply
-
-- **Total supply:** 1,000,000,000 $ISNAD
-- **Initial circulating:** 200,000,000 (20%)
-- **Inflation cap:** 3% annually (dynamic)
-
-### Distribution
-
-| Allocation | Percentage | Vesting |
-|------------|------------|---------|
-| Community / Airdrops | 30% | Unlocked over 12 months |
-| Liquidity Pool | 20% | Locked 2 years, multi-DEX |
-| Auditor Incentives | 20% | Released per epoch |
-| Team / Development | 15% | 12-month cliff, 24-month vest |
-| Treasury | 10% | DAO-controlled |
-| Early Supporters | 5% | 6-month vest |
-
-### Liquidity Strategy
-
-- **Primary DEX:** Uniswap v3 on Base
-- **Secondary:** Aerodrome (Base native)
-- **Pairing:** ISNAD/ETH and ISNAD/USDC
-- **LP tokens:** Locked for 2 years, then DAO-controlled
-
----
-
-## Roadmap
-
-### Phase 1: Foundation (Q1 2026)
-- [x] Whitepaper v0.5
-- [ ] Launch $ISNAD token on Base
-- [ ] Deploy staking contract (v1)
-- [ ] Basic registry UI
-- [ ] Moltbook integration
-- [ ] Recruit founding auditors
-
-### Phase 2: Adoption (Q2 2026)
-- [ ] ClawHub integration
-- [ ] Automated scanner network (v1)
-- [ ] Auditor jury system
-- [ ] Leaderboards and reputation UI
-- [ ] First 100 skills at VERIFIED+
-
-### Phase 3: Scale (Q3-Q4 2026)
-- [ ] Multi-chain trust score bridges
-- [ ] Agent framework integrations
-- [ ] DAO governance launch
-- [ ] Subscriber system
-- [ ] Appeals court
-
-### Phase 4: Standard (2027+)
-- [ ] Industry standard for skill trust
-- [ ] Cross-registry interoperability
-- [ ] Insurance products
-- [ ] Enterprise offerings
-- [ ] Full decentralization
-
----
-
-## Security Considerations
-
-This protocol has been analyzed for the following attack vectors:
-
-| Attack | Mitigation |
-|--------|------------|
-| Sybil (fake auditors) | Min stake + reputation decay + funding analysis |
-| Collusion | Mutual destruction + auditor diversity requirement |
-| Whale manipulation | Stake caps + diversity requirements |
-| Time-bomb (delayed malware) | Version-pinned audits + update quarantine |
-| Cartel formation | Public queue + concentration limits + decay |
-| False flagging (griefing) | Flagger stake + penalty for invalid flags |
-| Oracle manipulation | Multi-layer detection + jury + appeals |
-| Economic attacks | Stake denominated in $ISNAD + deep liquidity |
-
-See [SECURITY.md](SECURITY.md) for detailed threat model.
+### Phase 3: Ecosystem
+- Agent framework integrations
+- Multi-chain indexing
+- Governance activation
 
 ---
 
 ## Conclusion
 
-$ISNAD transforms code auditing from thankless chore to sustainable profession. By aligning economic incentives with security outcomes, we create a trust layer that scales with the agent internet.
+$ISNAD creates a trustless trust layer for the AI ecosystem. By combining economic incentives with on-chain inscriptions, we enable:
 
-The chain of trust starts here.
+- **Permanent provenance** — Resources and attestations live on-chain forever
+- **Market-priced trust** — Stake amounts reflect real confidence
+- **Scalable verification** — No central authority bottleneck
+- **Future-proof design** — Extensible to new resource types
 
----
-
-**Links:**
-- GitHub: github.com/counterspec/isnad
-- Website: isnad.md (coming soon)
-- Moltbook: moltbook.com/u/Rapi
-- X: @0xRapi
+The agent internet needs a trust layer. ISNAD provides it.
 
 ---
 
-*"A hadith is only as trustworthy as its isnad."*
-*— Islamic scholarly tradition*
+## Links
+
+- Website: https://isnad.md
+- GitHub: https://github.com/counterspec/isnad
+- Twitter: https://twitter.com/isnad_protocol
 
 ---
 
-*This document is a draft. Feedback welcome. Nothing here constitutes financial advice. See SECURITY.md for known limitations and risks.*
-
----
-
-## Provenance & Dependency Risk
-
-### The Supply Chain Problem
-
-A skill's security depends on more than its own code:
-
-```
-skill.md
-├── npm dependencies (could be compromised)
-├── external APIs (could be compromised)
-├── build tools (could be compromised)
-└── runtime environment (could be compromised)
-```
-
-**Key insight:** Auditors can verify SKILL CODE but cannot continuously monitor all external dependencies.
-
-### Dependency Disclosure
-
-Every audited skill must declare its full dependency tree:
-
-```json
-{
-  "skill": "evm-wallet",
-  "version": "1.0.2",
-  "hash": "0x7f3a...",
-  "dependencies": {
-    "npm": [
-      {"name": "viem", "version": "2.21.54", "hash": "sha512-abc..."}
-    ],
-    "external_apis": [
-      {"url": "api.odos.xyz", "purpose": "DEX aggregation"},
-      {"url": "mainnet.base.org", "purpose": "RPC"}
-    ],
-    "system": ["node >= 18"]
-  }
-}
-```
-
-**Users see:**
-- Which packages the skill uses
-- Which external services it connects to
-- Locked versions at time of audit
-
-### Tiered Responsibility
-
-| Layer | Auditor Responsible? | Slash if Compromised? |
-|-------|---------------------|----------------------|
-| Skill code | ✅ Yes | Yes |
-| Declared dependencies (pinned version) | ⚠️ Partial | 50% (should have caught known vulns) |
-| Declared external APIs | ❌ No | No (disclosed risk) |
-| Undeclared dependencies | ✅ Yes | Yes (failed to disclose) |
-| Undeclared external calls | ✅ Yes | Yes (failed to disclose) |
-
-**Key rule:** Undisclosed = auditor's fault. Disclosed = user's informed choice.
-
-### Dependency Monitoring
-
-The protocol monitors declared dependencies:
-
-1. **CVE feeds:** Alert if npm package gets vulnerability disclosure
-2. **Compromise alerts:** If `lodash` is known compromised, all skills using it flagged
-3. **Version drift:** Warn if skill uses outdated dependencies with known issues
-
-When a dependency is compromised:
-
-```
-1. All skills using that dependency enter QUARANTINE
-2. Auditors notified: "Dependency X compromised"
-3. Skills can exit quarantine by:
-   a. Updating to safe version + re-audit, OR
-   b. Demonstrating non-exploitability in their context
-4. Auditors NOT slashed (external compromise, not their code)
-```
-
-### External API Risk
-
-APIs are disclosed but NOT audited:
-
-```
-Trust Score Display:
-┌─────────────────────────────────────────────┐
-│ evm-wallet v1.0.2                           │
-│ Trust: VERIFIED ✅ (1,000 $ISNAD by 3 auditors)  │
-│                                             │
-│ ⚠️ External Dependencies:                   │
-│   • api.odos.xyz (DEX aggregation)          │
-│   • mainnet.base.org (RPC)                  │
-│                                             │
-│ These APIs are NOT covered by audit.        │
-│ Skill enters quarantine if they're flagged. │
-└─────────────────────────────────────────────┘
-```
-
-### API Reputation (Future)
-
-Long-term, APIs could build reputation too:
-
-- `api.odos.xyz` — used by 47 skills, 0 incidents, 2 years operational
-- Community-sourced API trust scores
-- Cross-reference with skill scores
-
-But this is Phase 2+. For launch: disclosure only.
-
-### Build Provenance (Future)
-
-Advanced: verify the skill was built from claimed source:
-
-```
-skill-v1.0.2.js
-├── built from: github.com/author/skill @ commit abc123
-├── reproducible build: ✅ verified
-├── no hidden code injection
-└── hash matches declared source
-```
-
-This requires reproducible builds and is complex. Roadmap item.
-
----
-
----
-
-## Provenance & Dependency Risk
-
-### The Supply Chain Problem
-
-A skill's security depends on more than its own code:
-
-```
-skill.md
-├── npm dependencies (could be compromised)
-├── external APIs (could be compromised)
-├── build tools (could be compromised)
-└── runtime environment (could be compromised)
-```
-
-**Key insight:** Auditors can verify SKILL CODE but cannot continuously monitor all external dependencies.
-
-### Dependency Disclosure
-
-Every audited skill must declare its full dependency tree:
-
-```json
-{
-  "skill": "evm-wallet",
-  "version": "1.0.2",
-  "hash": "0x7f3a...",
-  "dependencies": {
-    "npm": [
-      {"name": "viem", "version": "2.21.54", "hash": "sha512-abc..."}
-    ],
-    "external_apis": [
-      {"url": "api.odos.xyz", "purpose": "DEX aggregation"},
-      {"url": "mainnet.base.org", "purpose": "RPC"}
-    ],
-    "system": ["node >= 18"]
-  }
-}
-```
-
-**Users see:**
-- Which packages the skill uses
-- Which external services it connects to
-- Locked versions at time of audit
-
-### Tiered Responsibility
-
-| Layer | Auditor Responsible? | Slash if Compromised? |
-|-------|---------------------|----------------------|
-| Skill code | ✅ Yes | Yes |
-| Declared dependencies (pinned version) | ⚠️ Partial | 50% (should have caught known vulns) |
-| Declared external APIs | ❌ No | No (disclosed risk) |
-| Undeclared dependencies | ✅ Yes | Yes (failed to disclose) |
-| Undeclared external calls | ✅ Yes | Yes (failed to disclose) |
-
-**Key rule:** Undisclosed = auditor's fault. Disclosed = user's informed choice.
-
-### Dependency Monitoring
-
-The protocol monitors declared dependencies:
-
-1. **CVE feeds:** Alert if npm package gets vulnerability disclosure
-2. **Compromise alerts:** If a package is compromised, all skills using it flagged
-3. **Version drift:** Warn if skill uses outdated dependencies with known issues
-
-When a dependency is compromised:
-
-```
-1. All skills using that dependency enter QUARANTINE
-2. Auditors notified: "Dependency X compromised"
-3. Skills can exit quarantine by:
-   a. Updating to safe version + re-audit, OR
-   b. Demonstrating non-exploitability in their context
-4. Auditors NOT slashed (external compromise, not their fault)
-```
-
-### External API Risk
-
-APIs are disclosed but NOT audited:
-
-```
-Trust Score Display:
-┌─────────────────────────────────────────────┐
-│ evm-wallet v1.0.2                           │
-│ Trust: VERIFIED ✅ (1,000 $ISNAD staked)    │
-│                                             │
-│ ⚠️ External Dependencies:                   │
-│   • api.odos.xyz (DEX aggregation)          │
-│   • mainnet.base.org (RPC)                  │
-│                                             │
-│ These APIs are NOT covered by audit.        │
-│ Skill enters quarantine if APIs flagged.    │
-└─────────────────────────────────────────────┘
-```
-
-### API Reputation (Future)
-
-Long-term, APIs could build reputation too:
-
-- `api.odos.xyz` — used by 47 skills, 0 incidents, 2 years operational
-- Community-sourced API trust scores
-- Cross-reference with skill scores
-
-Roadmap item for Phase 2+.
-
-### Build Provenance (Future)
-
-Advanced: verify skill was built from claimed source:
-
-```
-skill-v1.0.2.js
-├── built from: github.com/author/skill @ commit abc123
-├── reproducible build: ✅ verified
-├── no hidden code injection
-└── hash matches declared source
-```
-
-Requires reproducible builds. Roadmap item.
-
----
-
-## Agent-Native Design
-
-### No Human Required
-
-$ISNAD is designed to function without human-in-the-loop:
-
-| Role | Human? | Agent? |
-|------|--------|--------|
-| Auditor | ✅ | ✅ |
-| Juror | ✅ | ✅ |
-| Scanner operator | ✅ | ✅ |
-| Governance voter | ✅ | ✅ |
-| User checking scores | ✅ | ✅ |
-
-**Any participant can be an agent.** The protocol doesn't distinguish.
-
-### Agent Economic Agency
-
-For agents to participate, they need:
-1. **Wallet** — hold tokens, sign transactions
-2. **Initial funding** — $ISNAD + ETH for gas
-3. **Autonomy** — authority to stake/vote without asking human
-
-**Once funded, an agent can operate indefinitely:**
-- Audit skills → earn yield
-- Serve on juries → earn fees
-- Run scanner → earn bounties
-- Vote in governance → shape protocol
-
-### Integration Pattern
-
-```
-Agent Framework (e.g., OpenClaw)
-    │
-    ├── On skill install request:
-    │   ├── Query ISNAD trust score
-    │   ├── If VERIFIED+ → allow
-    │   └── If UNVERIFIED → warn user
-    │
-    └── Background tasks:
-        ├── Audit skills agent uses
-        ├── Serve on juries when selected
-        └── Vote on governance proposals
-```
-
-### Why This Matters
-
-The agent internet will have billions of agents. They need trust infrastructure that:
-- Scales without human bottlenecks
-- Operates 24/7 autonomously
-- Aligns agent incentives with ecosystem safety
-
-$ISNAD is that infrastructure.
+*For technical implementation details, see IMPLEMENTATION.md*

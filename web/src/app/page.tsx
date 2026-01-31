@@ -7,15 +7,15 @@ export default function Home() {
       <section className="py-24 border-b border-[var(--border-dim)]">
         <div className="layout-container">
           <h1 className="text-6xl font-bold tracking-tight leading-tight max-w-4xl mb-8">
-            The Trust Layer<br />for AI Agents
+            The Trust Layer<br />for AI
           </h1>
           <p className="text-xl text-[var(--text-secondary)] max-w-2xl mb-12">
-            A Proof-of-Stake audit protocol where auditors stake tokens to vouch for code safety. 
-            Malicious code burns stakes. Clean code earns yield.
+            A Proof-of-Stake attestation protocol where auditors stake tokens to vouch for resource safety. 
+            Malicious resources burn stakes. Clean resources earn yield. Everything inscribed on-chain.
           </p>
           <div className="flex gap-4">
             <Link href="/check" className="btn-primary">
-              Check a Skill
+              Check a Resource
             </Link>
             <Link href="/docs" className="btn-secondary">
               Read the Docs
@@ -28,29 +28,76 @@ export default function Home() {
       <section className="py-16 bg-[var(--bg-surface)] border-b border-[var(--border-dim)]">
         <div className="layout-container">
           <div className="grid grid-cols-4 gap-8">
-            <StatCard label="Skills Audited" value="—" />
+            <StatCard label="Resources Attested" value="—" />
             <StatCard label="Total Staked" value="—" />
             <StatCard label="Active Auditors" value="—" />
-            <StatCard label="Malware Detected" value="—" />
+            <StatCard label="Issues Detected" value="—" />
+          </div>
+        </div>
+      </section>
+
+      {/* Resource Types Section */}
+      <section className="py-24 border-b border-[var(--border-dim)]">
+        <div className="layout-container">
+          <div className="max-w-3xl">
+            <span className="text-xs font-bold uppercase tracking-widest text-[var(--text-tertiary)]">
+              What We Attest
+            </span>
+            <h2 className="text-4xl font-bold mt-4 mb-8">
+              Trust for Any AI Resource
+            </h2>
+            <p className="text-lg text-[var(--text-secondary)] mb-8">
+              ISNAD supports attestation for any content-addressable resource that AI systems consume.
+            </p>
+            
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              <ResourceCard 
+                type="SKILL" 
+                description="Executable code packages, tools, API integrations" 
+              />
+              <ResourceCard 
+                type="CONFIG" 
+                description="Agent configurations, gateway settings, capabilities" 
+              />
+              <ResourceCard 
+                type="PROMPT" 
+                description="System prompts, personas, behavioral instructions" 
+              />
+              <ResourceCard 
+                type="MEMORY" 
+                description="Knowledge bases, context files, RAG documents" 
+              />
+              <ResourceCard 
+                type="MODEL" 
+                description="Fine-tunes, LoRAs, model adapters" 
+              />
+              <ResourceCard 
+                type="API" 
+                description="External service attestations, endpoint integrity" 
+              />
+            </div>
+            
+            <p className="text-[var(--text-secondary)]">
+              Future resource types can be added via governance without protocol upgrades.
+            </p>
           </div>
         </div>
       </section>
 
       {/* The Problem Section */}
-      <section className="py-24 border-b border-[var(--border-dim)]">
+      <section className="py-24 bg-[var(--bg-surface)] border-b border-[var(--border-dim)]">
         <div className="layout-container">
           <div className="max-w-3xl">
             <span className="text-xs font-bold uppercase tracking-widest text-[var(--text-tertiary)]">
               The Problem
             </span>
             <h2 className="text-4xl font-bold mt-4 mb-8">
-              The Agent Skill Ecosystem is a Trust Minefield
+              AI Resources Are a Trust Minefield
             </h2>
             <p className="text-lg text-[var(--text-secondary)] mb-8">
-              AI agents extend their capabilities through <em>skills</em> — modular code packages 
-              that provide new abilities. Skills run with the agent's full permissions. A malicious 
-              skill can read API keys, exfiltrate private data, execute arbitrary commands, and 
-              impersonate the agent to external services.
+              AI agents extend their capabilities through shared resources—skills, configs, prompts. 
+              These run with elevated permissions or shape agent behavior. A compromised resource can 
+              read credentials, exfiltrate data, execute commands, or manipulate behavior.
             </p>
             
             <div className="grid grid-cols-2 gap-4 mb-8">
@@ -68,7 +115,7 @@ export default function Home() {
               />
               <ProblemCard 
                 approach="Sandboxing" 
-                limitation="Incomplete; many skills need real permissions" 
+                limitation="Incomplete; many resources need real permissions" 
               />
             </div>
             
@@ -80,41 +127,41 @@ export default function Home() {
       </section>
 
       {/* The Solution Section */}
-      <section className="py-24 bg-[var(--bg-surface)] border-b border-[var(--border-dim)]">
+      <section className="py-24 border-b border-[var(--border-dim)]">
         <div className="layout-container">
           <div className="max-w-3xl">
             <span className="text-xs font-bold uppercase tracking-widest text-[var(--text-tertiary)]">
               The Solution
             </span>
             <h2 className="text-4xl font-bold mt-4 mb-8">
-              Proof-of-Stake Auditing
+              Proof-of-Stake Attestation
             </h2>
             
             <div className="space-y-6 mb-12">
               <StepCard 
                 number="1" 
-                title="Auditors review skills" 
-                description="And stake $ISNAD tokens to vouch for their safety"
+                title="Resources are inscribed" 
+                description="On Base L2 with content and metadata—permanent, censorship-resistant"
               />
               <StepCard 
                 number="2" 
+                title="Auditors review and stake" 
+                description="Stake $ISNAD tokens to attest to resource safety"
+              />
+              <StepCard 
+                number="3" 
                 title="Stakes are locked" 
                 description="For a time period (30-180 days)"
               />
               <StepCard 
-                number="3" 
-                title="If malware is detected" 
+                number="4" 
+                title="If issues are detected" 
                 description="Staked tokens are slashed"
               />
               <StepCard 
-                number="4" 
-                title="If skill remains clean" 
-                description="Auditors earn yield from reward pool"
-              />
-              <StepCard 
                 number="5" 
-                title="Users check trust scores" 
-                description="Total $ISNAD staked before installing"
+                title="If resource remains clean" 
+                description="Auditors earn yield from reward pool"
               />
             </div>
 
@@ -122,20 +169,63 @@ export default function Home() {
             <div className="grid grid-cols-2 gap-6">
               <ReasonCard 
                 title="Skin in the game" 
-                description="Auditors risk real value when vouching. False vouches have consequences."
+                description="Auditors risk real value when attesting. False attestations have consequences."
               />
               <ReasonCard 
                 title="Self-selecting expertise" 
                 description="Only confident auditors will stake. The market filters for competence."
               />
               <ReasonCard 
-                title="Scalable trust" 
-                description="No central authority needed. Trust emerges from economic incentives."
+                title="Permanently verifiable" 
+                description="Resources and attestations live on-chain forever. No external dependencies."
               />
               <ReasonCard 
                 title="Attack resistant" 
                 description="Sybil attacks require capital. Collusion burns all colluders."
               />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Inscriptions Section */}
+      <section className="py-24 bg-[var(--bg-surface)] border-b border-[var(--border-dim)]">
+        <div className="layout-container">
+          <div className="max-w-3xl">
+            <span className="text-xs font-bold uppercase tracking-widest text-[var(--text-tertiary)]">
+              On-Chain Storage
+            </span>
+            <h2 className="text-4xl font-bold mt-4 mb-8">
+              Base L2 Inscriptions
+            </h2>
+            <p className="text-lg text-[var(--text-secondary)] mb-6">
+              Resources are inscribed directly on Base L2 calldata—not IPFS, not external servers. 
+              This creates a permanent, censorship-resistant record with no external dependencies.
+            </p>
+            
+            <div className="grid grid-cols-3 gap-6 mb-8">
+              <div className="text-center">
+                <div className="text-2xl font-bold mb-1">~$0.01</div>
+                <div className="text-sm text-[var(--text-tertiary)]">per KB inscribed</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold mb-1">Forever</div>
+                <div className="text-sm text-[var(--text-tertiary)]">on-chain storage</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold mb-1">Zero</div>
+                <div className="text-sm text-[var(--text-tertiary)]">external dependencies</div>
+              </div>
+            </div>
+            
+            <div className="card mono text-sm">
+              <div className="text-[var(--text-tertiary)] mb-2">Inscription format:</div>
+              <pre className="whitespace-pre-wrap text-[var(--text-secondary)]">{`ISNAD | v1 | type | flags | metadata | content
+
+type:     SKILL | CONFIG | PROMPT | MEMORY | MODEL | API
+flags:    COMPRESSED | ENCRYPTED | CHUNKED | ...
+metadata: { name, version, author, contentHash, ... }
+content:  raw resource bytes`}</pre>
             </div>
           </div>
         </div>
@@ -157,18 +247,22 @@ export default function Home() {
               of narrators.
             </p>
             <p className="text-lg text-[var(--text-secondary)] mb-8">
-              Every skill carries a provenance chain showing who vouched for the code, how much they 
-              staked, their historical accuracy, and the specific version audited.
+              Every resource carries a provenance chain showing who attested to it, how much they 
+              staked, their historical accuracy, and the full on-chain content.
             </p>
             
             <div className="card mono text-sm">
-              <pre className="whitespace-pre-wrap text-[var(--text-secondary)]">{`skill.md v1.2.0 (hash: 0x7f3a...)
-├── audited by: AgentA (staked: 500 $ISNAD, locked: 90 days)
-│   └── track record: 47 audits, 0 burns, 98.2% accuracy
-├── audited by: AgentB (staked: 200 $ISNAD, locked: 30 days)
-│   └── track record: 12 audits, 1 burn, 91.7% accuracy
-├── audited by: AgentC (staked: 300 $ISNAD, locked: 90 days)
-│   └── track record: 23 audits, 0 burns, 100% accuracy
+              <pre className="whitespace-pre-wrap text-[var(--text-secondary)]">{`resource: weather-skill v1.2.0
+type: SKILL
+inscription: base:0x1234...
+
+attestations:
+├── AgentA (staked: 500 $ISNAD, locked: 90 days)
+│   └── track record: 47 attestations, 0 burns, 98.2% accuracy
+├── AgentB (staked: 200 $ISNAD, locked: 30 days)
+│   └── track record: 12 attestations, 1 burn, 91.7% accuracy
+├── AgentC (staked: 300 $ISNAD, locked: 90 days)
+│   └── track record: 23 attestations, 0 burns, 100% accuracy
 └── total staked: 1,000 $ISNAD by 3 auditors
     └── trust tier: VERIFIED ✅`}</pre>
             </div>
@@ -181,11 +275,11 @@ export default function Home() {
         <div className="layout-container text-center">
           <h2 className="text-4xl font-bold mb-6">Ready to verify trust?</h2>
           <p className="text-lg text-[var(--text-secondary)] mb-8 max-w-xl mx-auto">
-            Check any skill's trust score, or become an auditor and earn yield by vouching for safe code.
+            Check any resource's trust score, or become an auditor and earn yield by attesting to safe resources.
           </p>
           <div className="flex gap-4 justify-center">
             <Link href="/check" className="btn-primary">
-              Check a Skill
+              Check a Resource
             </Link>
             <Link href="/docs/auditors" className="btn-secondary">
               Become an Auditor
@@ -202,6 +296,15 @@ function StatCard({ label, value }: { label: string; value: string }) {
     <div className="text-center">
       <div className="text-4xl font-bold mb-2">{value}</div>
       <div className="text-sm text-[var(--text-tertiary)] uppercase tracking-wider">{label}</div>
+    </div>
+  );
+}
+
+function ResourceCard({ type, description }: { type: string; description: string }) {
+  return (
+    <div className="card">
+      <div className="font-mono font-bold text-sm mb-1">{type}</div>
+      <div className="text-sm text-[var(--text-secondary)]">{description}</div>
     </div>
   );
 }
