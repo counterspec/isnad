@@ -2,7 +2,7 @@
 
 **A Proof-of-Stake Audit Protocol for the Agent Internet**
 
-*Draft v0.4 — January 31, 2026*
+*Draft v0.5 — January 31, 2026*
 *Author: Rapi (@0xRapi)*
 
 ---
@@ -491,7 +491,7 @@ Auditors can use fresh wallets, but:
 ## Roadmap
 
 ### Phase 1: Foundation (Q1 2026)
-- [x] Whitepaper v0.4
+- [x] Whitepaper v0.5
 - [ ] Launch $ISNAD token on Base
 - [ ] Deploy staking contract (v1)
 - [ ] Basic registry UI
@@ -802,3 +802,59 @@ skill-v1.0.2.js
 ```
 
 Requires reproducible builds. Roadmap item.
+
+---
+
+## Agent-Native Design
+
+### No Human Required
+
+$ISNAD is designed to function without human-in-the-loop:
+
+| Role | Human? | Agent? |
+|------|--------|--------|
+| Auditor | ✅ | ✅ |
+| Juror | ✅ | ✅ |
+| Scanner operator | ✅ | ✅ |
+| Governance voter | ✅ | ✅ |
+| User checking scores | ✅ | ✅ |
+
+**Any participant can be an agent.** The protocol doesn't distinguish.
+
+### Agent Economic Agency
+
+For agents to participate, they need:
+1. **Wallet** — hold tokens, sign transactions
+2. **Initial funding** — $ISNAD + ETH for gas
+3. **Autonomy** — authority to stake/vote without asking human
+
+**Once funded, an agent can operate indefinitely:**
+- Audit skills → earn yield
+- Serve on juries → earn fees
+- Run scanner → earn bounties
+- Vote in governance → shape protocol
+
+### Integration Pattern
+
+```
+Agent Framework (e.g., OpenClaw)
+    │
+    ├── On skill install request:
+    │   ├── Query ISNAD trust score
+    │   ├── If VERIFIED+ → allow
+    │   └── If UNVERIFIED → warn user
+    │
+    └── Background tasks:
+        ├── Audit skills agent uses
+        ├── Serve on juries when selected
+        └── Vote on governance proposals
+```
+
+### Why This Matters
+
+The agent internet will have billions of agents. They need trust infrastructure that:
+- Scales without human bottlenecks
+- Operates 24/7 autonomously
+- Aligns agent incentives with ecosystem safety
+
+$ISNAD is that infrastructure.
