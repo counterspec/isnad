@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  --bg-root: #f5f5f7;
+  --bg-surface: #ffffff;
+  --bg-subtle: #eeeeee;
+  --border-dim: #e0e0e0;
+  --border-highlight: #000000;
+  --text-primary: #000000;
+  --text-secondary: #555555;
+  --text-tertiary: #999999;
+  --status-green: #00c853;
+  --status-red: #ff3d00;
+  --status-warn: #ffab00;
+  --font-ui: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --font-code: 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-root);
+  color: var(--text-primary);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+code, pre {
+  font-family: var(--font-code);
+}
+
+.layout-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Brutalist button styles */
+.btn-primary {
+  background: var(--border-highlight);
+  color: white;
+  border: 2px solid var(--border-highlight);
+  padding: 12px 24px;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-primary:hover {
+  background: white;
+  color: var(--border-highlight);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--border-highlight);
+  border: 2px solid var(--border-highlight);
+  padding: 12px 24px;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--border-highlight);
+  color: white;
+}
+
+/* Card styles */
+.card {
+  background: var(--bg-surface);
+  border: 2px solid var(--border-highlight);
+  padding: 24px;
+}
+
+/* Trust tier badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 2px solid currentColor;
+}
+
+.badge-verified {
+  color: var(--status-green);
+  border-color: var(--status-green);
+}
+
+.badge-warning {
+  color: var(--status-warn);
+  border-color: var(--status-warn);
+}
+
+.badge-danger {
+  color: var(--status-red);
+  border-color: var(--status-red);
+}
+
+/* Monospace elements */
+.mono {
+  font-family: var(--font-code);
+}
