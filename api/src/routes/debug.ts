@@ -123,17 +123,15 @@ router.get('/test-stake', async (req: Request, res: Response) => {
       update: {},
     });
 
-    // Helper to convert viem BigInt (may be native bigint or serialized object)
-    const toBigInt = (val: any): bigint => {
-      if (typeof val === 'bigint') return val;
-      if (typeof val === 'number') return BigInt(val);
-      if (typeof val === 'string') return BigInt(val);
-      if (val && typeof val === 'object' && 'value' in val) return BigInt(val.value);
-      return BigInt(String(val));
-    };
-
-    const amountBigInt = toBigInt(amount);
-    const blockNumberBigInt = toBigInt(log.blockNumber);
+    // Return raw structure for debugging
+    return res.json({
+      debug: true,
+      amountRaw: amount,
+      amountType: typeof amount,
+      amountKeys: amount && typeof amount === 'object' ? Object.keys(amount) : null,
+      blockNumberRaw: log.blockNumber,
+      blockNumberType: typeof log.blockNumber,
+    });
     
     await prisma.attestation.upsert({
       where: { id: uniqueId },
