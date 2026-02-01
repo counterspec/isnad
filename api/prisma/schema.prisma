@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Resources (skills, packages, etc.) that can be audited
+model Resource {
+  id            String   @id @default(cuid())
+  hash          String   @unique // keccak256 of content
+  name          String?
+  url           String?
+  contentType   String?  // skill, package, contract, etc.
+  
+  trustScore    BigInt   @default(0)
+  trustTier     String   @default("UNVERIFIED") // UNVERIFIED, COMMUNITY, VERIFIED, TRUSTED
+  auditorCount  Int      @default(0)
+  
+  inscribedAt   DateTime?
+  inscribedBy   String?  // address
+  inscriptionTx String?
+  
+  flagged       Boolean  @default(false)
+  flagCount     Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  attestations  Attestation[]
+  flags         Flag[]
+}
+
+// Attestations (stakes vouching for resources)
+model Attestation {
+  id            String   @id @default(cuid())
+  
+  resourceHash  String
+  resource      Resource @relation(fields: [resourceHash], references: [hash])
+  
+  auditor       String   // address
+  amount        BigInt   // staked amount in wei
+  lockDuration  Int      // days
+  lockUntil     DateTime
+  multiplier    Float    // 1.0, 1.5, 2.0 based on lock
+  
+  slashed       Boolean  @default(false)
+  slashedAt     DateTime?
+  slashTx       String?
+  
+  txHash        String
+  blockNumber   BigInt
+  createdAt     DateTime @default(now())
+  
+  @@index([resourceHash])
+  @@index([auditor])
+}
+
+// Flags (reports of malicious content)
+model Flag {
+  id            String   @id @default(cuid())
+  
+  resourceHash  String
+  resource      Resource @relation(fields: [resourceHash], references: [hash])
+  
+  reporter      String   // address
+  reason        String
+  evidence      String?
+  severity      String   // LOW, MEDIUM, HIGH, CRITICAL
+  
+  status        String   @default("PENDING") // PENDING, CONFIRMED, REJECTED
+  resolvedAt    DateTime?
+  resolutionTx  String?
+  
+  txHash        String?
+  blockNumber   BigInt?
+  createdAt     DateTime @default(now())
+  
+  @@index([resourceHash])
+  @@index([reporter])
+}
+
+// Auditor profiles (aggregated stats)
+model Auditor {
+  id            String   @id @default(cuid())
+  address       String   @unique
+  
+  totalStaked   BigInt   @default(0)
+  activeStakes  Int      @default(0)
+  totalAudits   Int      @default(0)
+  
+  slashCount    Int      @default(0)
+  accuracy      Float    @default(100.0) // percentage
+  reputation    BigInt   @default(0)
+  
+  firstSeen     DateTime @default(now())
+  lastActive    DateTime @default(now())
+  
+  @@index([address])
+}
+
+// Sync state for indexer
+model SyncState {
+  id              String   @id @default("main")
+  lastBlock       BigInt   @default(0)
+  lastBlockHash   String?
+  lastSyncedAt    DateTime @default(now())
+}

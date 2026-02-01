@@ -6,13 +6,13 @@ import ISNADStakingABI from './abis/ISNADStaking.json';
 export const CONTRACTS = {
   // Base Sepolia testnet
   84532: {
-    token: '0x0000000000000000000000000000000000000000', // TODO: Deploy
-    registry: '0x0000000000000000000000000000000000000000',
-    staking: '0x0000000000000000000000000000000000000000',
+    token: '0x56d202C2E1C5a3D7538Ed6CAD674d4E07D83cbb4',
+    registry: '0x8340783A495BB4E5f2DF28eD3D3ABcD254aA1C93',
+    staking: '0x2B5aF6cd0AF41B534aA117eECE7650dDE8B044bE',
   },
-  // Base mainnet
+  // Base mainnet (TODO: Deploy)
   8453: {
-    token: '0x0000000000000000000000000000000000000000', // TODO: Deploy
+    token: '0x0000000000000000000000000000000000000000',
     registry: '0x0000000000000000000000000000000000000000',
     staking: '0x0000000000000000000000000000000000000000',
   },
@@ -40,22 +40,16 @@ export const TRUST_TIERS = {
   TRUSTED: 10_000,
 } as const;
 
-// Lock duration tiers (in days)
-export const LOCK_TIERS = {
-  SHORT: 7,
-  MEDIUM: 30,
-  LONG: 90,
-} as const;
-
-// Lock multipliers
-export const LOCK_MULTIPLIERS = {
-  7: 1.0,
-  30: 1.5,
-  90: 2.0,
-} as const;
-
-export type ChainId = keyof typeof CONTRACTS;
-
 export function getContracts(chainId: number) {
-  return CONTRACTS[chainId as ChainId] || CONTRACTS[DEFAULT_CHAIN_ID];
+  return CONTRACTS[chainId as keyof typeof CONTRACTS] || CONTRACTS[84532];
+}
+
+export function getTierName(tier: number): string {
+  switch (tier) {
+    case 0: return 'UNVERIFIED';
+    case 1: return 'COMMUNITY';
+    case 2: return 'VERIFIED';
+    case 3: return 'TRUSTED';
+    default: return 'UNKNOWN';
+  }
 }
