@@ -1,11 +1,9 @@
+'use client';
+
+import { useAuditors } from '@/hooks/useAuditors';
+
 export default function LeaderboardPage() {
-  const auditors = [
-    { rank: 1, name: 'AgentA', staked: 45000, audits: 127, accuracy: 99.2, burns: 0 },
-    { rank: 2, name: 'SecurityBot', staked: 38500, audits: 89, accuracy: 98.9, burns: 1 },
-    { rank: 3, name: 'TrustKeeper', staked: 32000, audits: 156, accuracy: 97.4, burns: 2 },
-    { rank: 4, name: 'CodeGuardian', staked: 28750, audits: 73, accuracy: 100, burns: 0 },
-    { rank: 5, name: 'AuditMaster', staked: 24200, audits: 95, accuracy: 96.8, burns: 3 },
-  ];
+  const { auditors, isLoading, error } = useAuditors(20);
 
   return (
     <div className="py-16">
@@ -18,43 +16,65 @@ export default function LeaderboardPage() {
           </p>
         </section>
 
-        <div className="card overflow-hidden p-0">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b-2 border-black">
-                <th className="text-left p-4 font-bold text-sm uppercase tracking-wider">Rank</th>
-                <th className="text-left p-4 font-bold text-sm uppercase tracking-wider">Auditor</th>
-                <th className="text-right p-4 font-bold text-sm uppercase tracking-wider">Total Staked</th>
-                <th className="text-right p-4 font-bold text-sm uppercase tracking-wider">Audits</th>
-                <th className="text-right p-4 font-bold text-sm uppercase tracking-wider">Accuracy</th>
-                <th className="text-right p-4 font-bold text-sm uppercase tracking-wider">Burns</th>
-              </tr>
-            </thead>
-            <tbody>
-              {auditors.map((auditor) => (
-                <tr key={auditor.rank} className="border-b border-[var(--border-dim)] hover:bg-[var(--bg-subtle)]">
-                  <td className="p-4 font-bold">{auditor.rank}</td>
-                  <td className="p-4 font-semibold">{auditor.name}</td>
-                  <td className="p-4 text-right mono">{auditor.staked.toLocaleString()} $ISNAD</td>
-                  <td className="p-4 text-right">{auditor.audits}</td>
-                  <td className="p-4 text-right">
-                    <span className={auditor.accuracy >= 98 ? 'text-[var(--status-green)]' : ''}>
-                      {auditor.accuracy}%
-                    </span>
-                  </td>
-                  <td className="p-4 text-right">
-                    <span className={auditor.burns > 0 ? 'text-[var(--status-red)]' : ''}>
-                      {auditor.burns}
-                    </span>
-                  </td>
+        {error && (
+          <div className="card text-center py-12 text-[var(--text-tertiary)]">
+            <p>Unable to load leaderboard</p>
+          </div>
+        )}
+
+        {isLoading && (
+          <div className="card text-center py-12">
+            <p>Loading auditors...</p>
+          </div>
+        )}
+
+        {!isLoading && !error && auditors.length === 0 && (
+          <div className="card text-center py-12 text-[var(--text-tertiary)]">
+            <p>No auditors yet. Be the first to stake and attest!</p>
+          </div>
+        )}
+
+        {!isLoading && !error && auditors.length > 0 && (
+          <div className="card overflow-hidden p-0">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b-2 border-black">
+                  <th className="text-left p-4 font-bold text-sm uppercase tracking-wider">Rank</th>
+                  <th className="text-left p-4 font-bold text-sm uppercase tracking-wider">Auditor</th>
+                  <th className="text-right p-4 font-bold text-sm uppercase tracking-wider">Total Staked</th>
+                  <th className="text-right p-4 font-bold text-sm uppercase tracking-wider">Audits</th>
+                  <th className="text-right p-4 font-bold text-sm uppercase tracking-wider">Accuracy</th>
+                  <th className="text-right p-4 font-bold text-sm uppercase tracking-wider">Burns</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {auditors.map((auditor) => (
+                  <tr key={auditor.address} className="border-b border-[var(--border-dim)] hover:bg-[var(--bg-subtle)]">
+                    <td className="p-4 font-bold">{auditor.rank}</td>
+                    <td className="p-4 font-mono text-sm" title={auditor.address}>
+                      {auditor.shortAddress}
+                    </td>
+                    <td className="p-4 text-right mono">{auditor.totalStaked} $ISNAD</td>
+                    <td className="p-4 text-right">{auditor.attestationCount}</td>
+                    <td className="p-4 text-right">
+                      <span className={auditor.accuracy >= 98 ? 'text-[var(--status-green)]' : ''}>
+                        {auditor.accuracy.toFixed(1)}%
+                      </span>
+                    </td>
+                    <td className="p-4 text-right">
+                      <span className={auditor.burnCount > 0 ? 'text-[var(--status-red)]' : ''}>
+                        {auditor.burnCount}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <div className="mt-8 text-center text-[var(--text-tertiary)]">
-          <p>Showing top 5 auditors. Full leaderboard coming soon.</p>
+          <p>Showing top {auditors.length} auditors by stake.</p>
         </div>
       </div>
     </div>
