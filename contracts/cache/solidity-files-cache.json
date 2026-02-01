@@ -1408,6 +1408,42 @@
         ">=0.4.16"
       ],
       "artifacts": []
+    },
+    "/root/clawd/isnad/contracts/contracts/ISNADRegistry.sol": {
+      "lastModificationDate": 1769904044065,
+      "contentHash": "04165812020264c8f55aa98556574fdc",
+      "sourceName": "contracts/ISNADRegistry.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "ISNADRegistry"
+      ]
     }
   }
 }

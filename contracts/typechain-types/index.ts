@@ -62,6 +62,8 @@ export type { Strings } from "./@openzeppelin/contracts/utils/Strings";
 export { Strings__factory } from "./factories/@openzeppelin/contracts/utils/Strings__factory";
 export type { Checkpoints } from "./@openzeppelin/contracts/utils/structs/Checkpoints";
 export { Checkpoints__factory } from "./factories/@openzeppelin/contracts/utils/structs/Checkpoints__factory";
+export type { ISNADRegistry } from "./contracts/ISNADRegistry";
+export { ISNADRegistry__factory } from "./factories/contracts/ISNADRegistry__factory";
 export type { ISNADStaking } from "./contracts/ISNADStaking";
 export { ISNADStaking__factory } from "./factories/contracts/ISNADStaking__factory";
 export type { ISNADToken } from "./contracts/ISNADToken";

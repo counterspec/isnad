@@ -126,6 +126,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Checkpoints__factory>;
     getContractFactory(
+      name: "ISNADRegistry",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ISNADRegistry__factory>;
+    getContractFactory(
       name: "ISNADStaking",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ISNADStaking__factory>;
@@ -275,6 +279,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Checkpoints>;
     getContractAt(
+      name: "ISNADRegistry",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ISNADRegistry>;
+    getContractAt(
       name: "ISNADStaking",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -398,6 +407,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Checkpoints>;
     deployContract(
+      name: "ISNADRegistry",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ISNADRegistry>;
+    deployContract(
       name: "ISNADStaking",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ISNADStaking>;
@@ -546,6 +559,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Checkpoints>;
+    deployContract(
+      name: "ISNADRegistry",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ISNADRegistry>;
     deployContract(
       name: "ISNADStaking",
       args: any[],
