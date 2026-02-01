@@ -83,4 +83,83 @@ router.post('/sync/reset', async (req: Request, res: Response) => {
   }
 });
 
+// GET /debug/test-stake - Test processing a single stake event
+router.get('/test-stake', async (req: Request, res: Response) => {
+  try {
+    const { createPublicClient, http, parseAbiItem } = await import('viem');
+    const { base } = await import('viem/chains');
+    
+    const client = createPublicClient({
+      chain: base,
+      transport: http(process.env.RPC_URL || 'https://mainnet.base.org'),
+    });
+
+    // Get the first Staked event
+    const logs = await client.getLogs({
+      address: process.env.ISNAD_STAKING_ADDRESS as `0x${string}`,
+      event: parseAbiItem('event Staked(bytes32 indexed attestationId, address indexed auditor, bytes32 indexed resourceHash, uint256 amount, uint256 lockUntil, uint256 lockDuration)'),
+      fromBlock: BigInt(41580704),
+      toBlock: BigInt(41580720),
+    });
+
+    if (logs.length === 0) {
+      return res.json({ success: false, error: 'No Staked events found' });
+    }
+
+    const log = logs[0];
+    const { attestationId, auditor, resourceHash, amount, lockUntil, lockDuration } = log.args as any;
+
+    // Try to process it
+    const hash = resourceHash as string;
+    const uniqueId = `${log.transactionHash}-${log.logIndex}`;
+    const lockSeconds = Number(lockDuration);
+    const lockDays = Math.round(lockSeconds / 86400);
+    const lockUntilDate = new Date(Number(lockUntil) * 1000);
+
+    // Upsert resource first
+    await prisma.resource.upsert({
+      where: { hash },
+      create: { hash },
+      update: {},
+    });
+
+    // Create attestation
+    await prisma.attestation.upsert({
+      where: { id: uniqueId },
+      create: {
+        id: uniqueId,
+        resourceHash: hash,
+        auditor: auditor as string,
+        amount: BigInt(amount.toString()),
+        lockDuration: lockDays,
+        lockUntil: lockUntilDate,
+        multiplier: 1.0,
+        txHash: log.transactionHash,
+        blockNumber: BigInt(log.blockNumber.toString()),
+      },
+      update: {},
+    });
+
+    res.json({
+      success: true,
+      event: {
+        attestationId,
+        auditor,
+        resourceHash,
+        amount: amount.toString(),
+        lockUntil: lockUntil.toString(),
+        lockDuration: lockDuration.toString(),
+        lockDays,
+        uniqueId,
+      },
+    });
+  } catch (e: any) {
+    res.status(500).json({ 
+      success: false, 
+      error: e.message,
+      stack: e.stack,
+    });
+  }
+});
+
 export default router;
