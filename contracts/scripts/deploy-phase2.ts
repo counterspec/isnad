@@ -1,9 +1,9 @@
 import { ethers } from "hardhat";
 
-// Existing deployed contracts
-const TOKEN_ADDRESS = "0x56d202C2E1C5a3D7538Ed6CAD674d4E07D83cbb4";
-const REGISTRY_ADDRESS = "0x8340783A495BB4E5f2DF28eD3D3ABcD254aA1C93";
-const STAKING_ADDRESS = "0x2B5aF6cd0AF41B534aA117eECE7650dDE8B044bE";
+// Existing deployed contracts (v2 with AutoUnpausable)
+const TOKEN_ADDRESS = "0xc41c1006A1AaC093C758A2f09de16fee2561651A";
+const REGISTRY_ADDRESS = "0x5A06453257874Fd000738F28C462d17BFf8e1EA3";
+const STAKING_ADDRESS = "0x58983D142A388A96B7d9F970005483AA044CCAD9";
 
 async function main() {
   const [deployer] = await ethers.getSigners();

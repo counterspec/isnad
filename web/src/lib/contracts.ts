@@ -4,15 +4,15 @@ import ISNADStakingABI from './abis/ISNADStaking.json';
 
 // Contract addresses per chain
 export const CONTRACTS = {
-  // Base Sepolia testnet
+  // Base Sepolia testnet (v2 with AutoUnpausable)
   84532: {
-    token: '0x56d202C2E1C5a3D7538Ed6CAD674d4E07D83cbb4',
-    registry: '0x8340783A495BB4E5f2DF28eD3D3ABcD254aA1C93',
-    staking: '0x2B5aF6cd0AF41B534aA117eECE7650dDE8B044bE',
-    oracle: '0x4f1968413640bA2087Db65d4c37912d7CD598982',
-    rewardPool: '0xfD75A1BD5d3C09d692B1fb7ECEA613BA08961911',
-    timelock: '0x13B3418c78c309D0d141f6eF0A26D783809Bc1bA',
-    governor: '0x67F139c13628DBB9aFac8377fb2DD57958B9C586',
+    token: '0xc41c1006A1AaC093C758A2f09de16fee2561651A',
+    registry: '0x5A06453257874Fd000738F28C462d17BFf8e1EA3',
+    staking: '0x58983D142A388A96B7d9F970005483AA044CCAD9',
+    oracle: '0x418EbF8F206fA6efF3318647d8c4Ac137dDf3aC7',
+    rewardPool: '0x474cB2441C0Af053DAe052302a6829a218Aa656F',
+    timelock: '0x2c99dB618a6dBFf0F0e74f7949fcC9A23ffB4A69',
+    governor: '0xf08269e04029eB0eeAfcE10Ed3aa9Fb2bAbB61Cd',
   },
   // Base mainnet (TODO: Deploy)
   8453: {

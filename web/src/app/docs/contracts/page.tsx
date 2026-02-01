@@ -18,13 +18,13 @@ export default function ContractsPage() {
             </tr>
           </thead>
           <tbody>
-            <ContractRow name="ISNADToken" address="0x56d202C2E1C5a3D7538Ed6CAD674d4E07D83cbb4" />
-            <ContractRow name="ISNADRegistry" address="0x8340783A495BB4E5f2DF28eD3D3ABcD254aA1C93" />
-            <ContractRow name="ISNADStaking" address="0x2B5aF6cd0AF41B534aA117eECE7650dDE8B044bE" />
-            <ContractRow name="ISNADOracle" address="0x4f1968413640bA2087Db65d4c37912d7CD598982" />
-            <ContractRow name="ISNADRewardPool" address="0xfD75A1BD5d3C09d692B1fb7ECEA613BA08961911" />
-            <ContractRow name="TimelockController" address="0x13B3418c78c309D0d141f6eF0A26D783809Bc1bA" />
-            <ContractRow name="ISNADGovernor" address="0x67F139c13628DBB9aFac8377fb2DD57958B9C586" last />
+            <ContractRow name="ISNADToken" address="0xc41c1006A1AaC093C758A2f09de16fee2561651A" />
+            <ContractRow name="ISNADRegistry" address="0x5A06453257874Fd000738F28C462d17BFf8e1EA3" />
+            <ContractRow name="ISNADStaking" address="0x58983D142A388A96B7d9F970005483AA044CCAD9" />
+            <ContractRow name="ISNADOracle" address="0x418EbF8F206fA6efF3318647d8c4Ac137dDf3aC7" />
+            <ContractRow name="ISNADRewardPool" address="0x474cB2441C0Af053DAe052302a6829a218Aa656F" />
+            <ContractRow name="TimelockController" address="0x2c99dB618a6dBFf0F0e74f7949fcC9A23ffB4A69" />
+            <ContractRow name="ISNADGovernor" address="0xf08269e04029eB0eeAfcE10Ed3aa9Fb2bAbB61Cd" last />
           </tbody>
         </table>
       </div>
