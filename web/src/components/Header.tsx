@@ -13,6 +13,7 @@ export function Header() {
   const [showConnectors, setShowConnectors] = useState(false);
   
   const navLinks = [
+    { href: '/about', label: 'About' },
     { href: '/check', label: 'Trust Checker' },
     { href: '/stake', label: 'Stake' },
     { href: '/leaderboard', label: 'Auditors' },
