@@ -124,46 +124,14 @@ router.get('/test-stake', async (req: Request, res: Response) => {
     });
 
     // Return raw structure for debugging
-    return res.json({
+    res.json({
       debug: true,
       amountRaw: amount,
       amountType: typeof amount,
       amountKeys: amount && typeof amount === 'object' ? Object.keys(amount) : null,
+      amountJSON: JSON.stringify(amount, (k, v) => typeof v === 'bigint' ? `BIGINT:${v}` : v),
       blockNumberRaw: log.blockNumber,
       blockNumberType: typeof log.blockNumber,
-    });
-    
-    await prisma.attestation.upsert({
-      where: { id: uniqueId },
-      create: {
-        id: uniqueId,
-        resourceHash: hash,
-        auditor: auditor as string,
-        amount: amountBigInt,
-        lockDuration: lockDays,
-        lockUntil: lockUntilDate,
-        multiplier: 1.0,
-        txHash: log.transactionHash,
-        blockNumber: blockNumberBigInt,
-      },
-      update: {},
-    });
-
-    res.json({
-      success: true,
-      event: {
-        attestationId,
-        auditor,
-        resourceHash,
-        amount: String(amount),
-        amountType: typeof amount,
-        lockUntil: String(lockUntil),
-        lockDuration: String(lockDuration),
-        lockDays,
-        uniqueId,
-        amountBigInt: amountBigInt.toString(),
-        blockNumberBigInt: blockNumberBigInt.toString(),
-      },
     });
   } catch (e: any) {
     res.status(500).json({ 
