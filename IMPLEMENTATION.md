@@ -347,6 +347,40 @@ Agent:
 
 ---
 
+## Auditor Outreach Plan
+
+Target audiences for founding auditors:
+
+1. **Security researchers** — Trail of Bits community, OpenZeppelin contributors
+2. **AI safety people** — Researchers who care about agent trust/alignment
+3. **Existing skill authors** — OpenClaw/ClawHub contributors (already review code)
+4. **Crypto security auditors** — Understand staking/slashing mechanics
+5. **Agent framework devs** — Other AI agent platforms who want trust infra
+
+**Outreach channels:**
+- Direct outreach to known security researchers
+- Posts in AI safety forums/Discord
+- ClawHub announcement to existing skill authors
+- Crypto security Twitter/communities
+
+---
+
+## Scanner MVP
+
+The scanner is the detection oracle — catches malicious code before it harms users.
+
+**MVP Architecture:**
+1. Agent runs security analysis (static + dynamic)
+2. Flags suspicious resources with evidence
+3. Submits evidence hash to oracle contract
+4. Jury reviews (or auto-slash if confidence high)
+
+**Phase 1:** Single scanner operated by core team
+**Phase 2:** Open-source scanner code, incentivize community operators
+**Phase 3:** Decentralized scanner network with reputation
+
+---
+
 ## Launch Sequence
 
 ### Phase 0: Preparation (Week -2 to 0)
@@ -433,17 +467,34 @@ Agent:
 
 ---
 
+## Decisions (Resolved)
+
+### Jury Incentives
+**Decision:** Fee from flagger deposit + bonus for voting with majority. If jury doesn't reach quorum, extend deadline and reduce required votes. Keep it simple for v1.
+
+### Cross-Registry Consistency  
+**Decision:** One hash = one score. Content-addressed, not platform-addressed. A skill on ClawHub and MoltHub with the same content hash shares the same trust score.
+
+### L2 Bridging Strategy
+**Decision:** Start Base-only. Don't over-engineer day 1. If needed later, use LayerZero or Chainlink CCIP to sync scores cross-chain.
+
+### Upgrade Path
+**Decision:** No proxy pattern (too much trust). Use AutoUnpausable for emergencies (max 7-day pause). If critical bug found, deploy v2 contracts and migrate stakes.
+
+### Token Launch
+**Decision:** Launch via Clawnch/Clanker (handles liquidity automatically). No manual Uniswap LP setup needed.
+
+### Early Distribution
+**Decision:** Skip formal airdrop. Instead:
+- Retroactive rewards for first auditors
+- Grants for founding scanner operators  
+- Bounties for first verified skills
+
+---
+
 ## Open Questions
 
-1. **Jury incentives:** How to ensure jurors take it seriously? Current: fee + majority bonus. Enough?
-
-2. **Scanner quality:** How to verify scanner nodes aren't rubber-stamping? Periodic audits of auditors?
-
-3. **Cross-registry consistency:** If skill is on ClawHub and MoltHub, one trust score or two?
-
-4. **Upgrade path:** How to upgrade contracts without breaking stakes? Proxy pattern?
-
-5. **L2 fragmentation:** If agents are on different L2s, how to bridge trust scores efficiently?
+1. **Scanner quality:** How to verify scanner nodes aren't rubber-stamping? Periodic audits of auditors?
 
 ---
 
