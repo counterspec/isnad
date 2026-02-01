@@ -134,14 +134,16 @@ export class Indexer {
   }
 
   private async handleStakedEvent(log: any) {
-    const { attestationId, auditor, resourceHash, amount, lockUntil: lockUntilTimestamp, lockDuration } = log.args;
-    const hash = resourceHash as string;
-    const attId = attestationId as string;
-    const lockDays = Number(lockDuration) / 86400; // Convert seconds to days
-    const multiplier = LOCK_MULTIPLIERS[lockDays] || 1.0;
-    const lockUntil = new Date(Number(lockUntilTimestamp) * 1000);
+    try {
+      const { attestationId, auditor, resourceHash, amount, lockUntil: lockUntilTimestamp, lockDuration } = log.args;
+      const hash = resourceHash as string;
+      const attId = attestationId as string;
+      const lockSeconds = Number(lockDuration);
+      const lockDays = Math.round(lockSeconds / 86400); // Convert seconds to days (rounded)
+      const multiplier = LOCK_MULTIPLIERS[lockDays] || 1.0;
+      const lockUntil = new Date(Number(lockUntilTimestamp) * 1000);
 
-    console.log(`  ✅ Stake: ${auditor.slice(0, 8)}... on ${hash.slice(0, 10)}... (${amount} wei)`);
+      console.log(`  ✅ Stake: ${auditor.slice(0, 8)}... on ${hash.slice(0, 10)}... (${amount} wei, ${lockDays}d lock)`);
 
     // Upsert resource
     await prisma.resource.upsert({
@@ -172,6 +174,11 @@ export class Indexer {
 
     // Update auditor stats
     await this.updateAuditorStats(auditor);
+    } catch (error) {
+      console.error('Error handling Staked event:', error);
+      console.error('Log:', JSON.stringify(log, (_, v) => typeof v === 'bigint' ? v.toString() : v));
+      throw error; // Re-throw to stop indexer
+    }
   }
 
   private async handleSlashedEvent(log: any) {
