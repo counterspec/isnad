@@ -7,4 +7,5 @@ export type { ISNADOracle } from "./ISNADOracle";
 export type { ISNADRegistry } from "./ISNADRegistry";
 export type { ISNADRewardPool } from "./ISNADRewardPool";
 export type { ISNADStaking } from "./ISNADStaking";
+export type { ISNADStakingV2 } from "./ISNADStakingV2";
 export type { ISNADToken } from "./ISNADToken";

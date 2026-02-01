@@ -14,11 +14,15 @@ export const CONTRACTS = {
     timelock: '0x2c99dB618a6dBFf0F0e74f7949fcC9A23ffB4A69',
     governor: '0xf08269e04029eB0eeAfcE10Ed3aa9Fb2bAbB61Cd',
   },
-  // Base mainnet (TODO: Deploy)
+  // Base mainnet (LIVE)
   8453: {
-    token: '0x0000000000000000000000000000000000000000',
-    registry: '0x0000000000000000000000000000000000000000',
-    staking: '0x0000000000000000000000000000000000000000',
+    token: '0x73F6d2BBef125b3A5F91Fe23c722f3C321f007E5',
+    registry: '0xb8264f3117b498ddF912EBF641B2301103D80f06',
+    staking: '0x916FFb3eB82616220b81b99f70c3B7679B9D62ca',
+    oracle: '0xf02c3A5FED3c460628b5781E3c304Dd8206E85bd',
+    rewardPool: '0x790b0766e9e2db7c59526b247851D16bB493a95B',
+    timelock: '0x3Ef44fb908C86865A9315277f9AFc6b65A87e702',
+    governor: '0xB230Ffa9CA40F705756BC12698119f1B45687cd6',
   },
   // Localhost
   31337: {
@@ -34,8 +38,8 @@ export const ABIS = {
   staking: ISNADStakingABI,
 } as const;
 
-// Default chain for development
-export const DEFAULT_CHAIN_ID = 84532;
+// Default chain - Base mainnet
+export const DEFAULT_CHAIN_ID = 8453;
 
 // Trust tier thresholds (in ISNAD tokens, not wei)
 export const TRUST_TIERS = {

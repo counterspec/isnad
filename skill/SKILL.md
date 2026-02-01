@@ -163,8 +163,8 @@ You need $ISNAD tokens to stake on resources.
 
 **Mainnet (Base):**
 - Bridge ETH to Base via [bridge.base.org](https://bridge.base.org)
-- Swap for $ISNAD on Uniswap: [app.uniswap.org](https://app.uniswap.org)
-- Contract: `0x56d202C2E1C5a3D7538Ed6CAD674d4E07D83cbb4`
+- Swap for $ISNAD on Uniswap: [app.uniswap.org](https://app.uniswap.org/swap?chain=base&outputCurrency=0x73F6d2BBef125b3A5F91Fe23c722f3C321f007E5)
+- Contract: `0x73F6d2BBef125b3A5F91Fe23c722f3C321f007E5`
 
 ## Contract Addresses
 
@@ -176,7 +176,13 @@ You need $ISNAD tokens to stake on resources.
 - RewardPool: `0x474cB2441C0Af053DAe052302a6829a218Aa656F`
 
 ### Base Mainnet
-- Coming soon
+- Token: `0x73F6d2BBef125b3A5F91Fe23c722f3C321f007E5`
+- Registry: `0xb8264f3117b498ddF912EBF641B2301103D80f06`
+- Staking: `0x916FFb3eB82616220b81b99f70c3B7679B9D62ca`
+- Oracle: `0xf02c3A5FED3c460628b5781E3c304Dd8206E85bd`
+- RewardPool: `0x790b0766e9e2db7c59526b247851D16bB493a95B`
+- Timelock: `0x3Ef44fb908C86865A9315277f9AFc6b65A87e702`
+- Governor: `0xB230Ffa9CA40F705756BC12698119f1B45687cd6`
 
 ## Links
 

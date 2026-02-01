@@ -7,4 +7,5 @@ export { ISNADOracle__factory } from "./ISNADOracle__factory";
 export { ISNADRegistry__factory } from "./ISNADRegistry__factory";
 export { ISNADRewardPool__factory } from "./ISNADRewardPool__factory";
 export { ISNADStaking__factory } from "./ISNADStaking__factory";
+export { ISNADStakingV2__factory } from "./ISNADStakingV2__factory";
 export { ISNADToken__factory } from "./ISNADToken__factory";

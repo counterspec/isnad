@@ -2347,6 +2347,47 @@
       "artifacts": [
         "AutoUnpausable"
       ]
+    },
+    "/root/clawd/isnad/contracts/contracts/ISNADStakingV2.sol": {
+      "lastModificationDate": 1769943125739,
+      "contentHash": "9191a6a0c3a09bbd3012e47ae60d3300",
+      "sourceName": "contracts/ISNADStakingV2.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
+        "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
+        "./AutoUnpausable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "ISNADStakingV2"
+      ]
     }
   }
 }
