@@ -2388,6 +2388,44 @@
       "artifacts": [
         "ISNADStakingV2"
       ]
+    },
+    "/root/clawd/isnad/contracts/contracts/MockISNAD.sol": {
+      "lastModificationDate": 1769959590548,
+      "contentHash": "3d4ad1528a66853d4c5ea7d803ca1267",
+      "sourceName": "contracts/MockISNAD.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/ERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "MockISNAD"
+      ]
     }
   }
 }

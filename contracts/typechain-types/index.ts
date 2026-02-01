@@ -110,3 +110,5 @@ export type { ISNADStakingV2 } from "./contracts/ISNADStakingV2";
 export { ISNADStakingV2__factory } from "./factories/contracts/ISNADStakingV2__factory";
 export type { ISNADToken } from "./contracts/ISNADToken";
 export { ISNADToken__factory } from "./factories/contracts/ISNADToken__factory";
+export type { MockISNAD } from "./contracts/MockISNAD";
+export { MockISNAD__factory } from "./factories/contracts/MockISNAD__factory";

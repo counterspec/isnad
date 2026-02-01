@@ -221,6 +221,10 @@ declare module "hardhat/types/runtime" {
       name: "ISNADToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ISNADToken__factory>;
+    getContractFactory(
+      name: "MockISNAD",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.MockISNAD__factory>;
 
     getContractAt(
       name: "AccessControl",
@@ -482,6 +486,11 @@ declare module "hardhat/types/runtime" {
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.ISNADToken>;
+    getContractAt(
+      name: "MockISNAD",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.MockISNAD>;
 
     deployContract(
       name: "AccessControl",
@@ -691,6 +700,10 @@ declare module "hardhat/types/runtime" {
       name: "ISNADToken",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ISNADToken>;
+    deployContract(
+      name: "MockISNAD",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.MockISNAD>;
 
     deployContract(
       name: "AccessControl",
@@ -952,6 +965,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ISNADToken>;
+    deployContract(
+      name: "MockISNAD",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.MockISNAD>;
 
     // default types
     getContractFactory(

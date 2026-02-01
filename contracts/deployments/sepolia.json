@@ -1,0 +1,14 @@
+{
+  "network": "sepolia",
+  "chainId": 84532,
+  "deployedAt": "2026-02-01T15:26:00Z",
+  "contracts": {
+    "token": "0x07d921D275aD82e71aE42f2B603CF2926329c1Ce",
+    "registry": "0x916FFb3eB82616220b81b99f70c3B7679B9D62ca",
+    "staking": "0xf02c3A5FED3c460628b5781E3c304Dd8206E85bd",
+    "oracle": "0x790b0766e9e2db7c59526b247851D16bB493a95B",
+    "rewardPool": "0x3Ef44fb908C86865A9315277f9AFc6b65A87e702"
+  },
+  "explorer": "https://sepolia.basescan.org",
+  "notes": "Mock token with public faucet() function for testing"
+}
