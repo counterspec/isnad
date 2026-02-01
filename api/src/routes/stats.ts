@@ -23,10 +23,15 @@ router.get('/', async (req: Request, res: Response) => {
       prisma.syncState.findUnique({ where: { id: 'main' } }),
     ]);
 
-    const totalStaked = await prisma.attestation.aggregate({
+    // Sum amounts manually since they're stored as strings
+    const attestations = await prisma.attestation.findMany({
       where: { slashed: false },
-      _sum: { amount: true },
+      select: { amount: true },
     });
+    const totalStakedBigInt = attestations.reduce(
+      (sum, a) => sum + BigInt(a.amount),
+      0n
+    );
 
     const tierCounts = await prisma.resource.groupBy({
       by: ['trustTier'],
@@ -37,7 +42,7 @@ router.get('/', async (req: Request, res: Response) => {
       totalResources: resourceCount,
       totalAttestations: attestationCount,
       totalAuditors: auditorCount,
-      totalStaked: (totalStaked._sum.amount || 0n).toString(),
+      totalStaked: totalStakedBigInt.toString(),
       resourcesByTier: Object.fromEntries(tierCounts.map(t => [t.trustTier, t._count])),
       lastSyncedBlock: syncState?.lastBlock.toString() || '0',
       lastSyncedAt: syncState?.lastSyncedAt,
