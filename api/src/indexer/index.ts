@@ -152,11 +152,12 @@ export class Indexer {
       update: {},
     });
 
-    // Upsert attestation (use attestationId to avoid duplicates on re-sync)
+    // Upsert attestation (use txHash as unique id to avoid duplicates on re-sync)
+    const uniqueId = `${log.transactionHash}-${log.logIndex}`;
     await prisma.attestation.upsert({
-      where: { id: attId },
+      where: { id: uniqueId },
       create: {
-        id: attId,
+        id: uniqueId,
         resourceHash: hash,
         auditor,
         amount: BigInt(amount.toString()),
