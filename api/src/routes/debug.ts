@@ -109,12 +109,30 @@ router.get('/test-stake', async (req: Request, res: Response) => {
     const log = logs[0];
     const { attestationId, auditor, resourceHash, amount, lockUntil, lockDuration } = log.args as any;
 
-    // Try to process it
+    // Helper to extract number from viem value (may be bigint or object)
+    const toNumber = (val: any): number => {
+      if (typeof val === 'bigint') return Number(val);
+      if (typeof val === 'number') return val;
+      if (typeof val === 'object' && val !== null && 'value' in val) return Number(val.value);
+      return Number(val);
+    };
+    
+    // Helper to extract BigInt
+    const extractBigInt = (val: any): bigint => {
+      if (typeof val === 'bigint') return val;
+      if (typeof val === 'object' && val !== null && 'value' in val) return BigInt(val.value);
+      return BigInt(String(val));
+    };
+
     const hash = resourceHash as string;
     const uniqueId = `${log.transactionHash}-${log.logIndex}`;
-    const lockSeconds = Number(lockDuration);
+    const lockSeconds = toNumber(lockDuration);
     const lockDays = Math.round(lockSeconds / 86400);
-    const lockUntilDate = new Date(Number(lockUntil) * 1000);
+    const lockUntilTimestamp = toNumber(lockUntil);
+    const lockUntilDate = new Date(lockUntilTimestamp * 1000);
+    
+    const amountVal = extractBigInt(amount);
+    const blockVal = extractBigInt(log.blockNumber);
 
     // Upsert resource first
     await prisma.resource.upsert({
@@ -122,18 +140,6 @@ router.get('/test-stake', async (req: Request, res: Response) => {
       create: { hash },
       update: {},
     });
-
-    // Upsert resource first
-    await prisma.resource.upsert({
-      where: { hash },
-      create: { hash },
-      update: {},
-    });
-
-    // Convert BigInt to string, then let Prisma convert back
-    // Prisma 5.x should handle BigInt but seems to have issues with viem's BigInt
-    const amountVal = BigInt((amount as bigint).toString());
-    const blockVal = BigInt((log.blockNumber as bigint).toString());
     
     await prisma.attestation.upsert({
       where: { id: uniqueId },

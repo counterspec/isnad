@@ -135,15 +135,30 @@ export class Indexer {
 
   private async handleStakedEvent(log: any) {
     try {
+      // Helper to extract number from viem value (may be bigint or object)
+      const toNumber = (val: any): number => {
+        if (typeof val === 'bigint') return Number(val);
+        if (typeof val === 'number') return val;
+        if (typeof val === 'object' && val !== null && 'value' in val) return Number(val.value);
+        return Number(val);
+      };
+      
+      // Helper to extract BigInt
+      const extractBigInt = (val: any): bigint => {
+        if (typeof val === 'bigint') return val;
+        if (typeof val === 'object' && val !== null && 'value' in val) return BigInt(val.value);
+        return BigInt(String(val));
+      };
+
       const { attestationId, auditor, resourceHash, amount, lockUntil: lockUntilTimestamp, lockDuration } = log.args;
       const hash = resourceHash as string;
       const attId = attestationId as string;
-      const lockSeconds = Number(lockDuration);
+      const lockSeconds = toNumber(lockDuration);
       const lockDays = Math.round(lockSeconds / 86400); // Convert seconds to days (rounded)
       const multiplier = LOCK_MULTIPLIERS[lockDays] || 1.0;
-      const lockUntil = new Date(Number(lockUntilTimestamp) * 1000);
+      const lockUntil = new Date(toNumber(lockUntilTimestamp) * 1000);
 
-      console.log(`  ✅ Stake: ${auditor.slice(0, 8)}... on ${hash.slice(0, 10)}... (${amount} wei, ${lockDays}d lock)`);
+      console.log(`  ✅ Stake: ${auditor.slice(0, 8)}... on ${hash.slice(0, 10)}... (${lockDays}d lock)`);
 
     // Upsert resource
     await prisma.resource.upsert({
@@ -155,9 +170,9 @@ export class Indexer {
     // Upsert attestation (use txHash as unique id to avoid duplicates on re-sync)
     const uniqueId = `${log.transactionHash}-${log.logIndex}`;
     
-    // Convert viem BigInt to fresh BigInt (fixes Prisma serialization issue)
-    const amountVal = BigInt((amount as bigint).toString());
-    const blockVal = BigInt((log.blockNumber as bigint).toString());
+    // Extract BigInt values
+    const amountVal = extractBigInt(amount);
+    const blockVal = extractBigInt(log.blockNumber);
     
     await prisma.attestation.upsert({
       where: { id: uniqueId },
