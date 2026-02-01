@@ -123,15 +123,17 @@ router.get('/test-stake', async (req: Request, res: Response) => {
       update: {},
     });
 
-    // Debug: log the raw values
-    console.log('amount type:', typeof amount, 'value:', amount);
-    console.log('blockNumber type:', typeof log.blockNumber, 'value:', log.blockNumber);
-    
-    // Create attestation - convert viem BigInt objects properly
-    // Viem serializes BigInt as objects, need to extract string and convert
-    const amountStr = typeof amount === 'bigint' ? amount.toString() : String(amount);
-    const amountBigInt = BigInt(amountStr);
-    const blockNumberBigInt = BigInt(String(log.blockNumber));
+    // Helper to convert viem BigInt (may be native bigint or serialized object)
+    const toBigInt = (val: any): bigint => {
+      if (typeof val === 'bigint') return val;
+      if (typeof val === 'number') return BigInt(val);
+      if (typeof val === 'string') return BigInt(val);
+      if (val && typeof val === 'object' && 'value' in val) return BigInt(val.value);
+      return BigInt(String(val));
+    };
+
+    const amountBigInt = toBigInt(amount);
+    const blockNumberBigInt = toBigInt(log.blockNumber);
     
     await prisma.attestation.upsert({
       where: { id: uniqueId },
@@ -155,11 +157,14 @@ router.get('/test-stake', async (req: Request, res: Response) => {
         attestationId,
         auditor,
         resourceHash,
-        amount: amount.toString(),
-        lockUntil: lockUntil.toString(),
-        lockDuration: lockDuration.toString(),
+        amount: String(amount),
+        amountType: typeof amount,
+        lockUntil: String(lockUntil),
+        lockDuration: String(lockDuration),
         lockDays,
         uniqueId,
+        amountBigInt: amountBigInt.toString(),
+        blockNumberBigInt: blockNumberBigInt.toString(),
       },
     });
   } catch (e: any) {
