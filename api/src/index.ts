@@ -6,6 +6,7 @@ import resourcesRouter from './routes/resources';
 import trustRouter from './routes/trust';
 import auditorsRouter from './routes/auditors';
 import statsRouter from './routes/stats';
+import debugRouter from './routes/debug';
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use('/api/v1/resources', resourcesRouter);
 app.use('/api/v1/trust', trustRouter);
 app.use('/api/v1/auditors', auditorsRouter);
 app.use('/api/v1/stats', statsRouter);
+app.use('/api/v1/debug', debugRouter);
 
 // 404 handler
 app.use((req, res) => {
@@ -37,6 +39,7 @@ app.listen(PORT, () => {
   console.log(`\n🦞 ISNAD API running on port ${PORT}`);
   console.log(`   Health: http://localhost:${PORT}/health`);
   console.log(`   Stats:  http://localhost:${PORT}/api/v1/stats`);
+  console.log(`   Debug:  http://localhost:${PORT}/api/v1/debug`);
   console.log('');
 });
 
