@@ -2,50 +2,56 @@
  * Multi-network provider for ISNAD API
  */
 
-import { createPublicClient, http, PublicClient, Chain } from 'viem';
+import { createPublicClient, http } from 'viem';
 import { base, baseSepolia } from 'viem/chains';
 import { NetworkConfig, NETWORKS, NetworkName } from './networks';
 
-// Use 'any' for the client map to avoid viem's strict chain-specific types
+// Use Record to avoid viem's strict chain-specific PublicClient types
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const clients: Map<NetworkName, any> = new Map();
+const clients: Record<string, any> = {};
 
 /**
  * Get a viem PublicClient for the specified network
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getClient(network: NetworkConfig): any {
-  const cached = clients.get(network.name);
-  if (cached) return cached;
+  if (clients[network.name]) {
+    return clients[network.name];
+  }
 
   const chainConfig = network.name === 'mainnet' ? base : baseSepolia;
   
-  const newClient = createPublicClient({
+  // Cast to any to avoid viem's chain-specific type inference
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const newClient: any = createPublicClient({
     chain: chainConfig,
     transport: http(network.rpcUrl),
   });
 
-  clients.set(network.name, newClient);
+  clients[network.name] = newClient;
   return newClient;
 }
 
 /**
  * Get client for mainnet (convenience)
  */
-export function getMainnetClient(): PublicClient {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getMainnetClient(): any {
   return getClient(NETWORKS.mainnet);
 }
 
 /**
  * Get client for sepolia (convenience)
  */
-export function getSepoliaClient(): PublicClient {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getSepoliaClient(): any {
   return getClient(NETWORKS.sepolia);
 }
 
 // Legacy exports for indexer compatibility
 export const chain = base;
-export const client = createPublicClient({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const client: any = createPublicClient({
   chain: base,
   transport: http(NETWORKS.mainnet.rpcUrl),
 });
