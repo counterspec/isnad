@@ -159,7 +159,7 @@ You need $ISNAD tokens to stake on resources.
 
 **Testnet (Base Sepolia):**
 - Get testnet ETH from [Base Sepolia Faucet](https://www.alchemy.com/faucets/base-sepolia)
-- Request testnet $ISNAD from the [ISNAD Discord](https://discord.gg/isnad)
+- Request testnet $ISNAD via Twitter [@isnadprotocol](https://x.com/isnadprotocol)
 
 **Mainnet (Base):**
 - Bridge ETH to Base via [bridge.base.org](https://bridge.base.org)
@@ -184,4 +184,3 @@ You need $ISNAD tokens to stake on resources.
 - Docs: [isnad.md/docs](https://isnad.md/docs)
 - GitHub: [github.com/isnadprotocol](https://github.com/isnadprotocol)
 - Twitter: [@isnadprotocol](https://x.com/isnadprotocol)
-- Discord: [discord.gg/isnad](https://discord.gg/isnad)

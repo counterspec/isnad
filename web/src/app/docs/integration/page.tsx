@@ -151,7 +151,7 @@ export default function IntegrationPage() {
       <div className="card bg-[var(--bg-subtle)] mt-8">
         <h3 className="font-bold mb-2">Need Help?</h3>
         <p className="text-[var(--text-secondary)]">
-          Join the <a href="https://discord.gg/isnad" className="underline">Discord</a> or open an issue on{' '}
+          Reach out on <a href="https://x.com/isnadprotocol" className="underline">Twitter</a> or open an issue on{' '}
           <a href="https://github.com/counterspec/isnad" className="underline">GitHub</a>.
         </p>
       </div>
