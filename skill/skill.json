@@ -1,0 +1,51 @@
+{
+  "name": "isnad",
+  "version": "0.1.0",
+  "description": "Check and stake on resources using the ISNAD trust protocol",
+  "author": "isnad.md",
+  "homepage": "https://isnad.md",
+  "keywords": ["trust", "security", "audit", "blockchain", "base", "ai", "agents"],
+  "commands": {
+    "check": {
+      "description": "Check trust score for a resource hash",
+      "usage": "isnad check <hash>",
+      "example": "isnad check 0x7f3a8b2c..."
+    },
+    "stake": {
+      "description": "Stake ISNAD tokens on a resource",
+      "usage": "isnad stake <hash> <amount> [--lock days]",
+      "example": "isnad stake 0x7f3a... 100 --lock 30"
+    },
+    "inscribe": {
+      "description": "Inscribe a file as an ISNAD resource",
+      "usage": "isnad inscribe <file> [--type type]",
+      "example": "isnad inscribe ./SKILL.md --type tool"
+    },
+    "hash": {
+      "description": "Compute content hash for a file or string",
+      "usage": "isnad hash <input> [-f]",
+      "example": "isnad hash -f ./file.txt"
+    },
+    "balance": {
+      "description": "Check ISNAD token balance",
+      "usage": "isnad balance [address]",
+      "example": "isnad balance 0x123..."
+    }
+  },
+  "env": {
+    "ISNAD_PRIVATE_KEY": {
+      "description": "Wallet private key for transactions",
+      "required": false
+    }
+  },
+  "networks": {
+    "sepolia": {
+      "chainId": 84532,
+      "rpc": "https://sepolia.base.org"
+    },
+    "mainnet": {
+      "chainId": 8453,
+      "rpc": "https://mainnet.base.org"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "isnad-cli",
+  "version": "0.1.0",
+  "description": "CLI for ISNAD protocol - trust layer for AI agents",
+  "main": "dist/index.js",
+  "bin": {
+    "isnad": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts"
+  },
+  "keywords": ["isnad", "ai", "agents", "trust", "blockchain", "base"],
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^12.0.0",
+    "viem": "^2.0.0",
+    "chalk": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0"
+  }
+}
