@@ -123,15 +123,36 @@ router.get('/test-stake', async (req: Request, res: Response) => {
       update: {},
     });
 
-    // Return raw structure for debugging
+    // Upsert resource first
+    await prisma.resource.upsert({
+      where: { hash },
+      create: { hash },
+      update: {},
+    });
+
+    // viem returns native BigInt - pass directly to Prisma
+    await prisma.attestation.upsert({
+      where: { id: uniqueId },
+      create: {
+        id: uniqueId,
+        resourceHash: hash,
+        auditor: auditor as string,
+        amount: amount as bigint,
+        lockDuration: lockDays,
+        lockUntil: lockUntilDate,
+        multiplier: 1.0,
+        txHash: log.transactionHash,
+        blockNumber: log.blockNumber as bigint,
+      },
+      update: {},
+    });
+
     res.json({
-      debug: true,
-      amountRaw: amount,
-      amountType: typeof amount,
-      amountKeys: amount && typeof amount === 'object' ? Object.keys(amount) : null,
-      amountJSON: JSON.stringify(amount, (k, v) => typeof v === 'bigint' ? `BIGINT:${v}` : v),
-      blockNumberRaw: log.blockNumber,
-      blockNumberType: typeof log.blockNumber,
+      success: true,
+      message: 'Stake processed successfully',
+      uniqueId,
+      amount: (amount as bigint).toString(),
+      blockNumber: (log.blockNumber as bigint).toString(),
     });
   } catch (e: any) {
     res.status(500).json({ 
