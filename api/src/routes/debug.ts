@@ -130,19 +130,23 @@ router.get('/test-stake', async (req: Request, res: Response) => {
       update: {},
     });
 
-    // viem returns native BigInt - pass directly to Prisma
+    // Convert BigInt to string, then let Prisma convert back
+    // Prisma 5.x should handle BigInt but seems to have issues with viem's BigInt
+    const amountVal = BigInt((amount as bigint).toString());
+    const blockVal = BigInt((log.blockNumber as bigint).toString());
+    
     await prisma.attestation.upsert({
       where: { id: uniqueId },
       create: {
         id: uniqueId,
         resourceHash: hash,
         auditor: auditor as string,
-        amount: amount as bigint,
+        amount: amountVal,
         lockDuration: lockDays,
         lockUntil: lockUntilDate,
         multiplier: 1.0,
         txHash: log.transactionHash,
-        blockNumber: log.blockNumber as bigint,
+        blockNumber: blockVal,
       },
       update: {},
     });

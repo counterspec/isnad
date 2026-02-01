@@ -155,19 +155,22 @@ export class Indexer {
     // Upsert attestation (use txHash as unique id to avoid duplicates on re-sync)
     const uniqueId = `${log.transactionHash}-${log.logIndex}`;
     
-    // viem returns native BigInt, pass directly to Prisma
+    // Convert viem BigInt to fresh BigInt (fixes Prisma serialization issue)
+    const amountVal = BigInt((amount as bigint).toString());
+    const blockVal = BigInt((log.blockNumber as bigint).toString());
+    
     await prisma.attestation.upsert({
       where: { id: uniqueId },
       create: {
         id: uniqueId,
         resourceHash: hash,
         auditor,
-        amount: amount as bigint,
+        amount: amountVal,
         lockDuration: lockDays,
         lockUntil,
         multiplier,
         txHash: log.transactionHash,
-        blockNumber: log.blockNumber as bigint,
+        blockNumber: blockVal,
       },
       update: {}, // Don't update if exists
     });
