@@ -94,9 +94,10 @@ export class Indexer {
 
   private async processStakingEvents(fromBlock: bigint, toBlock: bigint) {
     // Get Staked events
+    // Contract: Staked(bytes32 indexed attestationId, address indexed auditor, bytes32 indexed resourceHash, uint256 amount, uint256 lockUntil, uint256 lockDuration)
     const stakedLogs = await client.getLogs({
       address: ADDRESSES.staking,
-      event: parseAbiItem('event Staked(address indexed auditor, bytes32 indexed resourceHash, uint256 amount, uint256 lockDuration, uint256 stakeId)'),
+      event: parseAbiItem('event Staked(bytes32 indexed attestationId, address indexed auditor, bytes32 indexed resourceHash, uint256 amount, uint256 lockUntil, uint256 lockDuration)'),
       fromBlock,
       toBlock,
     });
@@ -106,9 +107,10 @@ export class Indexer {
     }
 
     // Get Slashed events
+    // Contract: Slashed(bytes32 indexed attestationId, address indexed auditor, bytes32 indexed resourceHash, uint256 amount)
     const slashedLogs = await client.getLogs({
       address: ADDRESSES.staking,
-      event: parseAbiItem('event Slashed(uint256 indexed stakeId, bytes32 indexed resourceHash, uint256 amount, string reason)'),
+      event: parseAbiItem('event Slashed(bytes32 indexed attestationId, address indexed auditor, bytes32 indexed resourceHash, uint256 amount)'),
       fromBlock,
       toBlock,
     });
@@ -132,11 +134,11 @@ export class Indexer {
   }
 
   private async handleStakedEvent(log: any) {
-    const { auditor, resourceHash, amount, lockDuration, stakeId } = log.args;
+    const { attestationId, auditor, resourceHash, amount, lockUntil: lockUntilTimestamp, lockDuration } = log.args;
     const hash = resourceHash as string;
     const lockDays = Number(lockDuration) / 86400; // Convert seconds to days
     const multiplier = LOCK_MULTIPLIERS[lockDays] || 1.0;
-    const lockUntil = new Date(Date.now() + Number(lockDuration) * 1000);
+    const lockUntil = new Date(Number(lockUntilTimestamp) * 1000);
 
     console.log(`  ✅ Stake: ${auditor.slice(0, 8)}... on ${hash.slice(0, 10)}... (${amount} wei)`);
 
@@ -169,10 +171,10 @@ export class Indexer {
   }
 
   private async handleSlashedEvent(log: any) {
-    const { stakeId, resourceHash, amount, reason } = log.args;
+    const { attestationId, auditor, resourceHash, amount } = log.args;
     const hash = resourceHash as string;
 
-    console.log(`  🔥 Slash: ${hash.slice(0, 10)}... (${amount} wei) - ${reason}`);
+    console.log(`  🔥 Slash: ${hash.slice(0, 10)}... by ${auditor.slice(0, 8)}... (${amount} wei)`);
 
     // Mark attestations as slashed
     await prisma.attestation.updateMany({
