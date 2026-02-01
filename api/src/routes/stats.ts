@@ -7,6 +7,9 @@ const prisma = new PrismaClient();
 // GET /stats - Protocol stats
 router.get('/', async (req: Request, res: Response) => {
   try {
+    // Test DB connection first
+    await prisma.$connect();
+    
     const [
       resourceCount,
       attestationCount,
@@ -41,9 +44,13 @@ router.get('/', async (req: Request, res: Response) => {
         lastSyncedAt: syncState?.lastSyncedAt,
       },
     });
-  } catch (error) {
-    console.error('Error fetching stats:', error);
-    res.status(500).json({ error: 'Internal server error' });
+  } catch (error: any) {
+    console.error('Stats error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message,
+      hint: 'Check DATABASE_URL and run prisma db push'
+    });
   }
 });
 
