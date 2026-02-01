@@ -1,23 +1,42 @@
-import { createPublicClient, http, Chain } from 'viem';
-import { baseSepolia, base } from 'viem/chains';
-import dotenv from 'dotenv';
+/**
+ * Multi-network provider for ISNAD API
+ */
 
-dotenv.config();
+import { createPublicClient, http, PublicClient } from 'viem';
+import { base, baseSepolia } from 'viem/chains';
+import { NetworkConfig, NETWORKS, NetworkName } from './networks';
 
-const CHAIN_ID = parseInt(process.env.CHAIN_ID || '84532');
+// Cache clients per network
+const clients: Map<NetworkName, PublicClient> = new Map();
 
-const chains: Record<number, Chain> = {
-  84532: baseSepolia,
-  8453: base,
-};
+/**
+ * Get a viem PublicClient for the specified network
+ */
+export function getClient(network: NetworkConfig): PublicClient {
+  const cached = clients.get(network.name);
+  if (cached) return cached;
 
-export const chain = chains[CHAIN_ID] || baseSepolia;
+  const chain = network.name === 'mainnet' ? base : baseSepolia;
+  
+  const client = createPublicClient({
+    chain,
+    transport: http(network.rpcUrl),
+  });
 
-export const client = createPublicClient({
-  chain,
-  transport: http(process.env.RPC_URL),
-});
+  clients.set(network.name, client);
+  return client;
+}
 
-export const getBlockNumber = async (): Promise<bigint> => {
-  return client.getBlockNumber();
-};
+/**
+ * Get client for mainnet (convenience)
+ */
+export function getMainnetClient(): PublicClient {
+  return getClient(NETWORKS.mainnet);
+}
+
+/**
+ * Get client for sepolia (convenience)
+ */
+export function getSepoliaClient(): PublicClient {
+  return getClient(NETWORKS.sepolia);
+}
