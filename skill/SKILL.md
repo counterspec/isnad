@@ -144,22 +144,44 @@ Parse this to make trust decisions before using third-party skills/prompts.
 ## Installation
 
 ```bash
-# From npm (when published)
-npm install -g isnad-cli
+# Install via npm
+npm install -g @isnad/cli
 
-# Or from source
-cd isnad/cli && npm install && npm run build
-npm link
+# Verify installation
+isnad --version
 ```
+
+Requires Node.js 18+.
+
+## Getting $ISNAD Tokens
+
+You need $ISNAD tokens to stake on resources.
+
+**Testnet (Base Sepolia):**
+- Get testnet ETH from [Base Sepolia Faucet](https://www.alchemy.com/faucets/base-sepolia)
+- Request testnet $ISNAD from the [ISNAD Discord](https://discord.gg/isnad)
+
+**Mainnet (Base):**
+- Bridge ETH to Base via [bridge.base.org](https://bridge.base.org)
+- Swap for $ISNAD on Uniswap: [app.uniswap.org](https://app.uniswap.org)
+- Contract: `0x56d202C2E1C5a3D7538Ed6CAD674d4E07D83cbb4`
 
 ## Contract Addresses
 
 ### Base Sepolia (Testnet)
-- Token: `0x...` (TBD after deployment)
-- Registry: `0x...`
-- Staking: `0x...`
+- Token: `0x56d202C2E1C5a3D7538Ed6CAD674d4E07D83cbb4`
+- Registry: `0x8340783A495BB4E5f2DF28eD3D3ABcD254aA1C93`
+- Staking: `0x2B5aF6cd0AF41B534aA117eECE7650dDE8B044bE`
+- Oracle: `0x4f1968413640bA2087Db65d4c37912d7CD598982`
+- RewardPool: `0xfD75A1BD5d3C09d692B1fb7ECEA613BA08961911`
 
 ### Base Mainnet
-- Token: `0x...` (TBD)
-- Registry: `0x...`
-- Staking: `0x...`
+- Coming soon
+
+## Links
+
+- Website: [isnad.md](https://isnad.md)
+- Docs: [isnad.md/docs](https://isnad.md/docs)
+- GitHub: [github.com/isnadprotocol](https://github.com/isnadprotocol)
+- Twitter: [@isnadprotocol](https://x.com/isnadprotocol)
+- Discord: [discord.gg/isnad](https://discord.gg/isnad)
