@@ -123,19 +123,22 @@ router.get('/test-stake', async (req: Request, res: Response) => {
       update: {},
     });
 
-    // Create attestation
+    // Create attestation - convert viem BigInt objects properly
+    const amountBigInt = typeof amount === 'bigint' ? amount : BigInt((amount as any).value || amount.toString());
+    const blockNumberBigInt = typeof log.blockNumber === 'bigint' ? log.blockNumber : BigInt(log.blockNumber);
+    
     await prisma.attestation.upsert({
       where: { id: uniqueId },
       create: {
         id: uniqueId,
         resourceHash: hash,
         auditor: auditor as string,
-        amount: BigInt(amount.toString()),
+        amount: amountBigInt,
         lockDuration: lockDays,
         lockUntil: lockUntilDate,
         multiplier: 1.0,
         txHash: log.transactionHash,
-        blockNumber: BigInt(log.blockNumber.toString()),
+        blockNumber: blockNumberBigInt,
       },
       update: {},
     });
