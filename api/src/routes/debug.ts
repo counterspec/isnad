@@ -141,18 +141,19 @@ router.get('/test-stake', async (req: Request, res: Response) => {
       update: {},
     });
     
+    // Test with completely hardcoded BigInt values
     await prisma.attestation.upsert({
       where: { id: uniqueId },
       create: {
         id: uniqueId,
         resourceHash: hash,
         auditor: auditor as string,
-        amount: amountVal,
+        amount: 10000000000000000000000n, // Hardcoded BigInt literal
         lockDuration: lockDays,
         lockUntil: lockUntilDate,
         multiplier: 1.0,
         txHash: log.transactionHash,
-        blockNumber: blockVal,
+        blockNumber: 41580704n, // Hardcoded BigInt literal
       },
       update: {},
     });
