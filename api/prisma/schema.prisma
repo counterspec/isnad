@@ -87,13 +87,13 @@ model Auditor {
   id            String   @id @default(cuid())
   address       String   @unique
   
-  totalStaked   BigInt   @default(0)
+  totalStaked   String   @default("0") // stored as string to avoid BigInt issues
   activeStakes  Int      @default(0)
   totalAudits   Int      @default(0)
   
   slashCount    Int      @default(0)
   accuracy      Float    @default(100.0) // percentage
-  reputation    BigInt   @default(0)
+  reputation    String   @default("0") // stored as string to avoid BigInt issues
   
   firstSeen     DateTime @default(now())
   lastActive    DateTime @default(now())

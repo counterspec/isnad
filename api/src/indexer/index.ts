@@ -297,7 +297,7 @@ export class Indexer {
     const activeStakes = attestations.filter(a => !a.slashed && a.lockUntil > new Date()).length;
     const totalStaked = attestations
       .filter(a => !a.slashed)
-      .reduce((sum, a) => sum + a.amount, 0n);
+      .reduce((sum, a) => sum + BigInt(a.amount), 0n);
     const slashCount = attestations.filter(a => a.slashed).length;
     const accuracy = attestations.length > 0 
       ? ((attestations.length - slashCount) / attestations.length) * 100 
@@ -307,7 +307,7 @@ export class Indexer {
       where: { address },
       create: {
         address,
-        totalStaked,
+        totalStaked: totalStaked.toString(),
         activeStakes,
         totalAudits: attestations.length,
         slashCount,
@@ -315,7 +315,7 @@ export class Indexer {
         lastActive: new Date(),
       },
       update: {
-        totalStaked,
+        totalStaked: totalStaked.toString(),
         activeStakes,
         totalAudits: attestations.length,
         slashCount,
