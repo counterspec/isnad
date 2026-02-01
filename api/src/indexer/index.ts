@@ -121,7 +121,7 @@ export class Indexer {
   private async processRegistryEvents(fromBlock: bigint, toBlock: bigint) {
     const logs = await client.getLogs({
       address: ADDRESSES.registry,
-      event: parseAbiItem('event ResourceInscribed(bytes32 indexed resourceHash, address indexed inscriber, string contentType, string uri)'),
+      event: parseAbiItem('event ResourceInscribed(bytes32 indexed contentHash, uint8 indexed resourceType, address indexed author, uint256 blockNumber, string metadata)'),
       fromBlock,
       toBlock,
     });
@@ -190,25 +190,37 @@ export class Indexer {
   }
 
   private async handleResourceInscribed(log: any) {
-    const { resourceHash, inscriber, contentType, uri } = log.args;
-    const hash = resourceHash as string;
+    const { contentHash, resourceType, author, blockNumber, metadata } = log.args;
+    const hash = contentHash as string;
 
-    console.log(`  📝 Inscribed: ${hash.slice(0, 10)}... by ${inscriber.slice(0, 8)}...`);
+    console.log(`  📝 Inscribed: ${hash.slice(0, 10)}... by ${author.slice(0, 8)}... (type ${resourceType})`);
+
+    // Parse metadata if it's JSON, otherwise use as-is
+    let url = '';
+    let parsedContentType = '';
+    try {
+      const meta = JSON.parse(metadata);
+      url = meta.url || meta.uri || '';
+      parsedContentType = meta.contentType || meta.type || '';
+    } catch {
+      // metadata might be a simple string
+      url = metadata;
+    }
 
     await prisma.resource.upsert({
       where: { hash },
       create: {
         hash,
-        url: uri,
-        contentType,
-        inscribedBy: inscriber,
+        url,
+        contentType: parsedContentType,
+        inscribedBy: author,
         inscribedAt: new Date(),
         inscriptionTx: log.transactionHash,
       },
       update: {
-        url: uri,
-        contentType,
-        inscribedBy: inscriber,
+        url,
+        contentType: parsedContentType,
+        inscribedBy: author,
         inscribedAt: new Date(),
         inscriptionTx: log.transactionHash,
       },
