@@ -59,6 +59,8 @@ contract ISNADRewardPool is AccessControl, ReentrancyGuard {
     // ============ Constructor ============
     
     constructor(address _isnadToken, address _stakingContract) {
+        require(_isnadToken != address(0), "Invalid token");
+        require(_stakingContract != address(0), "Invalid staking contract");
         isnadToken = IERC20(_isnadToken);
         stakingContract = _stakingContract;
         
@@ -181,6 +183,7 @@ contract ISNADRewardPool is AccessControl, ReentrancyGuard {
      * @notice Update staking contract
      */
     function setStakingContract(address _stakingContract) external onlyRole(ADMIN_ROLE) {
+        require(_stakingContract != address(0), "Invalid staking contract");
         // Revoke old, grant new
         _revokeRole(DISTRIBUTOR_ROLE, stakingContract);
         stakingContract = _stakingContract;

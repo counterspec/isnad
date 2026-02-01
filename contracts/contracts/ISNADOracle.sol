@@ -108,6 +108,7 @@ contract ISNADOracle is AccessControl, ReentrancyGuard {
     // ============ Constructor ============
     
     constructor(address _stakingContract) {
+        require(_stakingContract != address(0), "Invalid staking contract");
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMIN_ROLE, msg.sender);
         stakingContract = _stakingContract;
@@ -286,6 +287,7 @@ contract ISNADOracle is AccessControl, ReentrancyGuard {
      * @notice Update staking contract address
      */
     function setStakingContract(address _stakingContract) external onlyRole(ADMIN_ROLE) {
+        require(_stakingContract != address(0), "Invalid staking contract");
         stakingContract = _stakingContract;
     }
     
