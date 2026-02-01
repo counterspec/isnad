@@ -2118,8 +2118,8 @@
       ]
     },
     "/root/clawd/isnad/contracts/contracts/ISNADStaking.sol": {
-      "lastModificationDate": 1769903926071,
-      "contentHash": "2dfe18929ac646f8fad0657ca75ee0fb",
+      "lastModificationDate": 1769915239871,
+      "contentHash": "84e294cb5bdf300993273c373820df60",
       "sourceName": "contracts/ISNADStaking.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -2149,7 +2149,7 @@
         "@openzeppelin/contracts/token/ERC20/IERC20.sol",
         "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
         "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
-        "@openzeppelin/contracts/access/AccessControl.sol"
+        "./AutoUnpausable.sol"
       ],
       "versionPragmas": [
         "^0.8.24"
@@ -2195,8 +2195,8 @@
       ]
     },
     "/root/clawd/isnad/contracts/contracts/ISNADRewardPool.sol": {
-      "lastModificationDate": 1769913871003,
-      "contentHash": "b93adc329d297d5312e82b34d5bf386f",
+      "lastModificationDate": 1769915281430,
+      "contentHash": "6f9eb59896a9d01c73a4bc0f85ca73ba",
       "sourceName": "contracts/ISNADRewardPool.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -2223,21 +2223,21 @@
         }
       },
       "imports": [
-        "@openzeppelin/contracts/access/AccessControl.sol",
         "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
         "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol"
+        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
+        "./AutoUnpausable.sol"
       ],
       "versionPragmas": [
-        "^0.8.20"
+        "^0.8.24"
       ],
       "artifacts": [
         "ISNADRewardPool"
       ]
     },
     "/root/clawd/isnad/contracts/contracts/ISNADOracle.sol": {
-      "lastModificationDate": 1769913859774,
-      "contentHash": "ad1af32321e0cb804ebd9413dce37db8",
+      "lastModificationDate": 1769915267565,
+      "contentHash": "3e4ea242620fb196967b8054002ca852",
       "sourceName": "contracts/ISNADOracle.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -2264,11 +2264,11 @@
         }
       },
       "imports": [
-        "@openzeppelin/contracts/access/AccessControl.sol",
-        "@openzeppelin/contracts/utils/ReentrancyGuard.sol"
+        "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
+        "./AutoUnpausable.sol"
       ],
       "versionPragmas": [
-        "^0.8.20"
+        "^0.8.24"
       ],
       "artifacts": [
         "ISNADOracle"
@@ -2308,6 +2308,44 @@
       ],
       "artifacts": [
         "ISNADRegistry"
+      ]
+    },
+    "/root/clawd/isnad/contracts/contracts/AutoUnpausable.sol": {
+      "lastModificationDate": 1769915218677,
+      "contentHash": "56240d2ef6397d5a90b59936e6ae3a15",
+      "sourceName": "contracts/AutoUnpausable.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/access/AccessControl.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "AutoUnpausable"
       ]
     }
   }

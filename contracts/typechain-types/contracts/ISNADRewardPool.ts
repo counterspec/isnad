@@ -29,6 +29,8 @@ export interface ISNADRewardPoolInterface extends Interface {
       | "ADMIN_ROLE"
       | "DEFAULT_ADMIN_ROLE"
       | "DISTRIBUTOR_ROLE"
+      | "MAX_PAUSE_DURATION"
+      | "PAUSER_ROLE"
       | "accrueRewards"
       | "auditorRewards"
       | "claimRewards"
@@ -41,6 +43,9 @@ export interface ISNADRewardPoolInterface extends Interface {
       | "hasRole"
       | "isnadToken"
       | "lockMultipliers"
+      | "pause"
+      | "paused"
+      | "pausedUntil"
       | "pendingRewards"
       | "poolBalance"
       | "renounceRole"
@@ -53,17 +58,20 @@ export interface ISNADRewardPoolInterface extends Interface {
       | "supportsInterface"
       | "totalClaimed"
       | "totalDistributed"
+      | "unpause"
   ): FunctionFragment;
 
   getEvent(
     nameOrSignatureOrTopic:
       | "LockMultiplierUpdated"
+      | "Paused"
       | "RewardAccrued"
       | "RewardClaimed"
       | "RewardRateUpdated"
       | "RoleAdminChanged"
       | "RoleGranted"
       | "RoleRevoked"
+      | "Unpaused"
   ): EventFragment;
 
   encodeFunctionData(
@@ -76,6 +84,14 @@ export interface ISNADRewardPoolInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "DISTRIBUTOR_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "MAX_PAUSE_DURATION",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "PAUSER_ROLE",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -122,6 +138,12 @@ export interface ISNADRewardPoolInterface extends Interface {
   encodeFunctionData(
     functionFragment: "lockMultipliers",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(functionFragment: "pause", values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: "paused", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "pausedUntil",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "pendingRewards",
@@ -171,6 +193,7 @@ export interface ISNADRewardPoolInterface extends Interface {
     functionFragment: "totalDistributed",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "ADMIN_ROLE", data: BytesLike): Result;
   decodeFunctionResult(
@@ -179,6 +202,14 @@ export interface ISNADRewardPoolInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "DISTRIBUTOR_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "MAX_PAUSE_DURATION",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "PAUSER_ROLE",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -215,6 +246,12 @@ export interface ISNADRewardPoolInterface extends Interface {
   decodeFunctionResult(functionFragment: "isnadToken", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "lockMultipliers",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "pausedUntil",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -262,6 +299,7 @@ export interface ISNADRewardPoolInterface extends Interface {
     functionFragment: "totalDistributed",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
 }
 
 export namespace LockMultiplierUpdatedEvent {
@@ -270,6 +308,19 @@ export namespace LockMultiplierUpdatedEvent {
   export interface OutputObject {
     duration: bigint;
     multiplier: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace PausedEvent {
+  export type InputTuple = [account: AddressLike, until: BigNumberish];
+  export type OutputTuple = [account: string, until: bigint];
+  export interface OutputObject {
+    account: string;
+    until: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -373,6 +424,18 @@ export namespace RoleRevokedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace UnpausedEvent {
+  export type InputTuple = [account: AddressLike];
+  export type OutputTuple = [account: string];
+  export interface OutputObject {
+    account: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export interface ISNADRewardPool extends BaseContract {
   connect(runner?: ContractRunner | null): ISNADRewardPool;
   waitForDeployment(): Promise<this>;
@@ -421,6 +484,10 @@ export interface ISNADRewardPool extends BaseContract {
   DEFAULT_ADMIN_ROLE: TypedContractMethod<[], [string], "view">;
 
   DISTRIBUTOR_ROLE: TypedContractMethod<[], [string], "view">;
+
+  MAX_PAUSE_DURATION: TypedContractMethod<[], [bigint], "view">;
+
+  PAUSER_ROLE: TypedContractMethod<[], [string], "view">;
 
   accrueRewards: TypedContractMethod<
     [
@@ -491,6 +558,12 @@ export interface ISNADRewardPool extends BaseContract {
 
   lockMultipliers: TypedContractMethod<[arg0: BigNumberish], [bigint], "view">;
 
+  pause: TypedContractMethod<[duration: BigNumberish], [void], "nonpayable">;
+
+  paused: TypedContractMethod<[], [boolean], "view">;
+
+  pausedUntil: TypedContractMethod<[], [bigint], "view">;
+
   pendingRewards: TypedContractMethod<[auditor: AddressLike], [bigint], "view">;
 
   poolBalance: TypedContractMethod<[], [bigint], "view">;
@@ -539,6 +612,8 @@ export interface ISNADRewardPool extends BaseContract {
 
   totalDistributed: TypedContractMethod<[], [bigint], "view">;
 
+  unpause: TypedContractMethod<[], [void], "nonpayable">;
+
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
@@ -551,6 +626,12 @@ export interface ISNADRewardPool extends BaseContract {
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "DISTRIBUTOR_ROLE"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "MAX_PAUSE_DURATION"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "PAUSER_ROLE"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "accrueRewards"
@@ -626,6 +707,15 @@ export interface ISNADRewardPool extends BaseContract {
     nameOrSignature: "lockMultipliers"
   ): TypedContractMethod<[arg0: BigNumberish], [bigint], "view">;
   getFunction(
+    nameOrSignature: "pause"
+  ): TypedContractMethod<[duration: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "paused"
+  ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "pausedUntil"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
     nameOrSignature: "pendingRewards"
   ): TypedContractMethod<[auditor: AddressLike], [bigint], "view">;
   getFunction(
@@ -673,6 +763,9 @@ export interface ISNADRewardPool extends BaseContract {
   getFunction(
     nameOrSignature: "totalDistributed"
   ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "unpause"
+  ): TypedContractMethod<[], [void], "nonpayable">;
 
   getEvent(
     key: "LockMultiplierUpdated"
@@ -680,6 +773,13 @@ export interface ISNADRewardPool extends BaseContract {
     LockMultiplierUpdatedEvent.InputTuple,
     LockMultiplierUpdatedEvent.OutputTuple,
     LockMultiplierUpdatedEvent.OutputObject
+  >;
+  getEvent(
+    key: "Paused"
+  ): TypedContractEvent<
+    PausedEvent.InputTuple,
+    PausedEvent.OutputTuple,
+    PausedEvent.OutputObject
   >;
   getEvent(
     key: "RewardAccrued"
@@ -723,6 +823,13 @@ export interface ISNADRewardPool extends BaseContract {
     RoleRevokedEvent.OutputTuple,
     RoleRevokedEvent.OutputObject
   >;
+  getEvent(
+    key: "Unpaused"
+  ): TypedContractEvent<
+    UnpausedEvent.InputTuple,
+    UnpausedEvent.OutputTuple,
+    UnpausedEvent.OutputObject
+  >;
 
   filters: {
     "LockMultiplierUpdated(uint256,uint256)": TypedContractEvent<
@@ -734,6 +841,17 @@ export interface ISNADRewardPool extends BaseContract {
       LockMultiplierUpdatedEvent.InputTuple,
       LockMultiplierUpdatedEvent.OutputTuple,
       LockMultiplierUpdatedEvent.OutputObject
+    >;
+
+    "Paused(address,uint256)": TypedContractEvent<
+      PausedEvent.InputTuple,
+      PausedEvent.OutputTuple,
+      PausedEvent.OutputObject
+    >;
+    Paused: TypedContractEvent<
+      PausedEvent.InputTuple,
+      PausedEvent.OutputTuple,
+      PausedEvent.OutputObject
     >;
 
     "RewardAccrued(address,uint256)": TypedContractEvent<
@@ -800,6 +918,17 @@ export interface ISNADRewardPool extends BaseContract {
       RoleRevokedEvent.InputTuple,
       RoleRevokedEvent.OutputTuple,
       RoleRevokedEvent.OutputObject
+    >;
+
+    "Unpaused(address)": TypedContractEvent<
+      UnpausedEvent.InputTuple,
+      UnpausedEvent.OutputTuple,
+      UnpausedEvent.OutputObject
+    >;
+    Unpaused: TypedContractEvent<
+      UnpausedEvent.InputTuple,
+      UnpausedEvent.OutputTuple,
+      UnpausedEvent.OutputObject
     >;
   };
 }

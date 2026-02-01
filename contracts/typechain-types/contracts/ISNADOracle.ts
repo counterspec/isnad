@@ -64,6 +64,8 @@ export interface ISNADOracleInterface extends Interface {
     nameOrSignature:
       | "ADMIN_ROLE"
       | "DEFAULT_ADMIN_ROLE"
+      | "MAX_PAUSE_DURATION"
+      | "PAUSER_ROLE"
       | "activeFlag"
       | "addToJurorPool"
       | "appeal"
@@ -87,6 +89,9 @@ export interface ISNADOracleInterface extends Interface {
       | "juryList"
       | "jurySize"
       | "minFlagDeposit"
+      | "pause"
+      | "paused"
+      | "pausedUntil"
       | "renounceRole"
       | "revokeRole"
       | "selectJury"
@@ -97,6 +102,7 @@ export interface ISNADOracleInterface extends Interface {
       | "stakingContract"
       | "supermajorityBps"
       | "supportsInterface"
+      | "unpause"
       | "vote"
       | "votingPeriod"
   ): FunctionFragment;
@@ -106,11 +112,13 @@ export interface ISNADOracleInterface extends Interface {
       | "FlagAppealed"
       | "JurorVoted"
       | "JurySelected"
+      | "Paused"
       | "ResourceFlagged"
       | "RoleAdminChanged"
       | "RoleGranted"
       | "RoleRevoked"
       | "SlashExecuted"
+      | "Unpaused"
       | "VerdictReached"
   ): EventFragment;
 
@@ -120,6 +128,14 @@ export interface ISNADOracleInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "DEFAULT_ADMIN_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "MAX_PAUSE_DURATION",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "PAUSER_ROLE",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -199,6 +215,12 @@ export interface ISNADOracleInterface extends Interface {
     functionFragment: "minFlagDeposit",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "pause", values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: "paused", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "pausedUntil",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "renounceRole",
     values: [BytesLike, AddressLike]
@@ -239,6 +261,7 @@ export interface ISNADOracleInterface extends Interface {
     functionFragment: "supportsInterface",
     values: [BytesLike]
   ): string;
+  encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "vote",
     values: [BytesLike, boolean]
@@ -251,6 +274,14 @@ export interface ISNADOracleInterface extends Interface {
   decodeFunctionResult(functionFragment: "ADMIN_ROLE", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "DEFAULT_ADMIN_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "MAX_PAUSE_DURATION",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "PAUSER_ROLE",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "activeFlag", data: BytesLike): Result;
@@ -306,6 +337,12 @@ export interface ISNADOracleInterface extends Interface {
     functionFragment: "minFlagDeposit",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "pausedUntil",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "renounceRole",
     data: BytesLike
@@ -340,6 +377,7 @@ export interface ISNADOracleInterface extends Interface {
     functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "vote", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "votingPeriod",
@@ -393,6 +431,19 @@ export namespace JurySelectedEvent {
   export interface OutputObject {
     flagId: string;
     jurors: string[];
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace PausedEvent {
+  export type InputTuple = [account: AddressLike, until: BigNumberish];
+  export type OutputTuple = [account: string, until: bigint];
+  export interface OutputObject {
+    account: string;
+    until: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -502,6 +553,18 @@ export namespace SlashExecutedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace UnpausedEvent {
+  export type InputTuple = [account: AddressLike];
+  export type OutputTuple = [account: string];
+  export interface OutputObject {
+    account: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export namespace VerdictReachedEvent {
   export type InputTuple = [
     flagId: BytesLike,
@@ -576,6 +639,10 @@ export interface ISNADOracle extends BaseContract {
   ADMIN_ROLE: TypedContractMethod<[], [string], "view">;
 
   DEFAULT_ADMIN_ROLE: TypedContractMethod<[], [string], "view">;
+
+  MAX_PAUSE_DURATION: TypedContractMethod<[], [bigint], "view">;
+
+  PAUSER_ROLE: TypedContractMethod<[], [string], "view">;
 
   activeFlag: TypedContractMethod<[arg0: BytesLike], [string], "view">;
 
@@ -703,6 +770,12 @@ export interface ISNADOracle extends BaseContract {
 
   minFlagDeposit: TypedContractMethod<[], [bigint], "view">;
 
+  pause: TypedContractMethod<[duration: BigNumberish], [void], "nonpayable">;
+
+  paused: TypedContractMethod<[], [boolean], "view">;
+
+  pausedUntil: TypedContractMethod<[], [bigint], "view">;
+
   renounceRole: TypedContractMethod<
     [role: BytesLike, callerConfirmation: AddressLike],
     [void],
@@ -751,6 +824,8 @@ export interface ISNADOracle extends BaseContract {
     "view"
   >;
 
+  unpause: TypedContractMethod<[], [void], "nonpayable">;
+
   vote: TypedContractMethod<
     [flagId: BytesLike, guilty: boolean],
     [void],
@@ -768,6 +843,12 @@ export interface ISNADOracle extends BaseContract {
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "DEFAULT_ADMIN_ROLE"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "MAX_PAUSE_DURATION"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "PAUSER_ROLE"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "activeFlag"
@@ -903,6 +984,15 @@ export interface ISNADOracle extends BaseContract {
     nameOrSignature: "minFlagDeposit"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "pause"
+  ): TypedContractMethod<[duration: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "paused"
+  ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "pausedUntil"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
     nameOrSignature: "renounceRole"
   ): TypedContractMethod<
     [role: BytesLike, callerConfirmation: AddressLike],
@@ -941,6 +1031,9 @@ export interface ISNADOracle extends BaseContract {
     nameOrSignature: "supportsInterface"
   ): TypedContractMethod<[interfaceId: BytesLike], [boolean], "view">;
   getFunction(
+    nameOrSignature: "unpause"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "vote"
   ): TypedContractMethod<
     [flagId: BytesLike, guilty: boolean],
@@ -971,6 +1064,13 @@ export interface ISNADOracle extends BaseContract {
     JurySelectedEvent.InputTuple,
     JurySelectedEvent.OutputTuple,
     JurySelectedEvent.OutputObject
+  >;
+  getEvent(
+    key: "Paused"
+  ): TypedContractEvent<
+    PausedEvent.InputTuple,
+    PausedEvent.OutputTuple,
+    PausedEvent.OutputObject
   >;
   getEvent(
     key: "ResourceFlagged"
@@ -1006,6 +1106,13 @@ export interface ISNADOracle extends BaseContract {
     SlashExecutedEvent.InputTuple,
     SlashExecutedEvent.OutputTuple,
     SlashExecutedEvent.OutputObject
+  >;
+  getEvent(
+    key: "Unpaused"
+  ): TypedContractEvent<
+    UnpausedEvent.InputTuple,
+    UnpausedEvent.OutputTuple,
+    UnpausedEvent.OutputObject
   >;
   getEvent(
     key: "VerdictReached"
@@ -1047,6 +1154,17 @@ export interface ISNADOracle extends BaseContract {
       JurySelectedEvent.InputTuple,
       JurySelectedEvent.OutputTuple,
       JurySelectedEvent.OutputObject
+    >;
+
+    "Paused(address,uint256)": TypedContractEvent<
+      PausedEvent.InputTuple,
+      PausedEvent.OutputTuple,
+      PausedEvent.OutputObject
+    >;
+    Paused: TypedContractEvent<
+      PausedEvent.InputTuple,
+      PausedEvent.OutputTuple,
+      PausedEvent.OutputObject
     >;
 
     "ResourceFlagged(bytes32,bytes32,address,uint256,bytes32)": TypedContractEvent<
@@ -1102,6 +1220,17 @@ export interface ISNADOracle extends BaseContract {
       SlashExecutedEvent.InputTuple,
       SlashExecutedEvent.OutputTuple,
       SlashExecutedEvent.OutputObject
+    >;
+
+    "Unpaused(address)": TypedContractEvent<
+      UnpausedEvent.InputTuple,
+      UnpausedEvent.OutputTuple,
+      UnpausedEvent.OutputObject
+    >;
+    Unpaused: TypedContractEvent<
+      UnpausedEvent.InputTuple,
+      UnpausedEvent.OutputTuple,
+      UnpausedEvent.OutputObject
     >;
 
     "VerdictReached(bytes32,bytes32,uint8,uint256,uint256)": TypedContractEvent<

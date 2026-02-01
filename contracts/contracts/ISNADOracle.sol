@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "./AutoUnpausable.sol";
 
 /**
  * @title ISNADOracle
@@ -14,8 +14,9 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
  * - Supermajority (2/3) required for verdict
  * - Appeals require 2x deposit
  * - Slash only callable after guilty verdict
+ * - AutoUnpausable for emergency pause (max 7 days)
  */
-contract ISNADOracle is AccessControl, ReentrancyGuard {
+contract ISNADOracle is AutoUnpausable, ReentrancyGuard {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     
     // ============ Structs ============
@@ -111,6 +112,7 @@ contract ISNADOracle is AccessControl, ReentrancyGuard {
         require(_stakingContract != address(0), "Invalid staking contract");
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMIN_ROLE, msg.sender);
+        _grantRole(PAUSER_ROLE, msg.sender);
         stakingContract = _stakingContract;
     }
     
@@ -124,7 +126,7 @@ contract ISNADOracle is AccessControl, ReentrancyGuard {
     function flagResource(
         bytes32 resourceHash,
         bytes32 evidenceHash
-    ) external payable nonReentrant returns (bytes32 flagId) {
+    ) external payable nonReentrant whenNotPaused returns (bytes32 flagId) {
         require(msg.value >= minFlagDeposit, "Insufficient deposit");
         require(activeFlag[resourceHash] == bytes32(0), "Resource already flagged");
         
@@ -169,7 +171,7 @@ contract ISNADOracle is AccessControl, ReentrancyGuard {
      * @param flagId The flag being voted on
      * @param guilty True if voting guilty
      */
-    function vote(bytes32 flagId, bool guilty) external nonReentrant {
+    function vote(bytes32 flagId, bool guilty) external nonReentrant whenNotPaused {
         Flag storage flag = flags[flagId];
         require(flag.status == FlagStatus.InReview, "Not in review");
         require(block.timestamp < flag.juryDeadline, "Voting ended");

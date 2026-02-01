@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./AutoUnpausable.sol";
 
 /**
  * @title ISNADStaking
@@ -16,8 +16,9 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
  * - Only ORACLE_ROLE can slash
  * - Whale caps prevent concentration attacks
  * - BURNER_ROLE on ISNADToken required for slashing
+ * - AutoUnpausable for emergency pause (max 7 days)
  */
-contract ISNADStaking is ReentrancyGuard, AccessControl {
+contract ISNADStaking is ReentrancyGuard, AutoUnpausable {
     using SafeERC20 for IERC20;
 
     bytes32 public constant ORACLE_ROLE = keccak256("ORACLE_ROLE");
@@ -92,6 +93,7 @@ contract ISNADStaking is ReentrancyGuard, AccessControl {
         
         token = IERC20(_token);
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
+        _grantRole(PAUSER_ROLE, admin);
     }
 
     /**
@@ -105,7 +107,7 @@ contract ISNADStaking is ReentrancyGuard, AccessControl {
         bytes32 resourceHash,
         uint256 amount,
         uint256 lockDuration
-    ) external nonReentrant returns (bytes32 attestationId) {
+    ) external nonReentrant whenNotPaused returns (bytes32 attestationId) {
         require(resourceHash != bytes32(0), "Invalid resource hash");
         require(amount > 0, "Amount must be positive");
         require(lockDuration >= MIN_LOCK_DURATION, "Lock too short");

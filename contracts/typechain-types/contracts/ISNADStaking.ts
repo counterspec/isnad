@@ -28,11 +28,13 @@ export interface ISNADStakingInterface extends Interface {
     nameOrSignature:
       | "DEFAULT_ADMIN_ROLE"
       | "MAX_LOCK_DURATION"
+      | "MAX_PAUSE_DURATION"
       | "MAX_STAKE_PERCENT"
       | "MAX_STAKE_PER_AUDITOR"
       | "MEDIUM_LOCK_DURATION"
       | "MIN_LOCK_DURATION"
       | "ORACLE_ROLE"
+      | "PAUSER_ROLE"
       | "TIER_1_THRESHOLD"
       | "TIER_2_THRESHOLD"
       | "TIER_3_THRESHOLD"
@@ -48,6 +50,9 @@ export interface ISNADStakingInterface extends Interface {
       | "getTrustTier"
       | "grantRole"
       | "hasRole"
+      | "pause"
+      | "paused"
+      | "pausedUntil"
       | "renounceRole"
       | "resourceAttestations"
       | "resourceTotalStake"
@@ -57,16 +62,19 @@ export interface ISNADStakingInterface extends Interface {
       | "supportsInterface"
       | "token"
       | "totalStaked"
+      | "unpause"
       | "unstake"
   ): FunctionFragment;
 
   getEvent(
     nameOrSignatureOrTopic:
+      | "Paused"
       | "RoleAdminChanged"
       | "RoleGranted"
       | "RoleRevoked"
       | "Slashed"
       | "Staked"
+      | "Unpaused"
       | "Unstaked"
   ): EventFragment;
 
@@ -76,6 +84,10 @@ export interface ISNADStakingInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "MAX_LOCK_DURATION",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "MAX_PAUSE_DURATION",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -96,6 +108,10 @@ export interface ISNADStakingInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "ORACLE_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "PAUSER_ROLE",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -158,6 +174,12 @@ export interface ISNADStakingInterface extends Interface {
     functionFragment: "hasRole",
     values: [BytesLike, AddressLike]
   ): string;
+  encodeFunctionData(functionFragment: "pause", values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: "paused", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "pausedUntil",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "renounceRole",
     values: [BytesLike, AddressLike]
@@ -188,6 +210,7 @@ export interface ISNADStakingInterface extends Interface {
     functionFragment: "totalStaked",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
   encodeFunctionData(functionFragment: "unstake", values: [BytesLike]): string;
 
   decodeFunctionResult(
@@ -196,6 +219,10 @@ export interface ISNADStakingInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "MAX_LOCK_DURATION",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "MAX_PAUSE_DURATION",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -216,6 +243,10 @@ export interface ISNADStakingInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "ORACLE_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "PAUSER_ROLE",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -272,6 +303,12 @@ export interface ISNADStakingInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "pausedUntil",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "renounceRole",
     data: BytesLike
@@ -296,7 +333,21 @@ export interface ISNADStakingInterface extends Interface {
     functionFragment: "totalStaked",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "unstake", data: BytesLike): Result;
+}
+
+export namespace PausedEvent {
+  export type InputTuple = [account: AddressLike, until: BigNumberish];
+  export type OutputTuple = [account: string, until: bigint];
+  export interface OutputObject {
+    account: string;
+    until: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export namespace RoleAdminChangedEvent {
@@ -413,6 +464,18 @@ export namespace StakedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace UnpausedEvent {
+  export type InputTuple = [account: AddressLike];
+  export type OutputTuple = [account: string];
+  export interface OutputObject {
+    account: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export namespace UnstakedEvent {
   export type InputTuple = [
     attestationId: BytesLike,
@@ -482,6 +545,8 @@ export interface ISNADStaking extends BaseContract {
 
   MAX_LOCK_DURATION: TypedContractMethod<[], [bigint], "view">;
 
+  MAX_PAUSE_DURATION: TypedContractMethod<[], [bigint], "view">;
+
   MAX_STAKE_PERCENT: TypedContractMethod<[], [bigint], "view">;
 
   MAX_STAKE_PER_AUDITOR: TypedContractMethod<[], [bigint], "view">;
@@ -491,6 +556,8 @@ export interface ISNADStaking extends BaseContract {
   MIN_LOCK_DURATION: TypedContractMethod<[], [bigint], "view">;
 
   ORACLE_ROLE: TypedContractMethod<[], [string], "view">;
+
+  PAUSER_ROLE: TypedContractMethod<[], [string], "view">;
 
   TIER_1_THRESHOLD: TypedContractMethod<[], [bigint], "view">;
 
@@ -580,6 +647,12 @@ export interface ISNADStaking extends BaseContract {
     "view"
   >;
 
+  pause: TypedContractMethod<[duration: BigNumberish], [void], "nonpayable">;
+
+  paused: TypedContractMethod<[], [boolean], "view">;
+
+  pausedUntil: TypedContractMethod<[], [bigint], "view">;
+
   renounceRole: TypedContractMethod<
     [role: BytesLike, callerConfirmation: AddressLike],
     [void],
@@ -618,6 +691,8 @@ export interface ISNADStaking extends BaseContract {
 
   totalStaked: TypedContractMethod<[], [bigint], "view">;
 
+  unpause: TypedContractMethod<[], [void], "nonpayable">;
+
   unstake: TypedContractMethod<
     [attestationId: BytesLike],
     [void],
@@ -635,6 +710,9 @@ export interface ISNADStaking extends BaseContract {
     nameOrSignature: "MAX_LOCK_DURATION"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "MAX_PAUSE_DURATION"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
     nameOrSignature: "MAX_STAKE_PERCENT"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
@@ -648,6 +726,9 @@ export interface ISNADStaking extends BaseContract {
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "ORACLE_ROLE"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "PAUSER_ROLE"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "TIER_1_THRESHOLD"
@@ -737,6 +818,15 @@ export interface ISNADStaking extends BaseContract {
     "view"
   >;
   getFunction(
+    nameOrSignature: "pause"
+  ): TypedContractMethod<[duration: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "paused"
+  ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "pausedUntil"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
     nameOrSignature: "renounceRole"
   ): TypedContractMethod<
     [role: BytesLike, callerConfirmation: AddressLike],
@@ -780,9 +870,19 @@ export interface ISNADStaking extends BaseContract {
     nameOrSignature: "totalStaked"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "unpause"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "unstake"
   ): TypedContractMethod<[attestationId: BytesLike], [void], "nonpayable">;
 
+  getEvent(
+    key: "Paused"
+  ): TypedContractEvent<
+    PausedEvent.InputTuple,
+    PausedEvent.OutputTuple,
+    PausedEvent.OutputObject
+  >;
   getEvent(
     key: "RoleAdminChanged"
   ): TypedContractEvent<
@@ -819,6 +919,13 @@ export interface ISNADStaking extends BaseContract {
     StakedEvent.OutputObject
   >;
   getEvent(
+    key: "Unpaused"
+  ): TypedContractEvent<
+    UnpausedEvent.InputTuple,
+    UnpausedEvent.OutputTuple,
+    UnpausedEvent.OutputObject
+  >;
+  getEvent(
     key: "Unstaked"
   ): TypedContractEvent<
     UnstakedEvent.InputTuple,
@@ -827,6 +934,17 @@ export interface ISNADStaking extends BaseContract {
   >;
 
   filters: {
+    "Paused(address,uint256)": TypedContractEvent<
+      PausedEvent.InputTuple,
+      PausedEvent.OutputTuple,
+      PausedEvent.OutputObject
+    >;
+    Paused: TypedContractEvent<
+      PausedEvent.InputTuple,
+      PausedEvent.OutputTuple,
+      PausedEvent.OutputObject
+    >;
+
     "RoleAdminChanged(bytes32,bytes32,bytes32)": TypedContractEvent<
       RoleAdminChangedEvent.InputTuple,
       RoleAdminChangedEvent.OutputTuple,
@@ -880,6 +998,17 @@ export interface ISNADStaking extends BaseContract {
       StakedEvent.InputTuple,
       StakedEvent.OutputTuple,
       StakedEvent.OutputObject
+    >;
+
+    "Unpaused(address)": TypedContractEvent<
+      UnpausedEvent.InputTuple,
+      UnpausedEvent.OutputTuple,
+      UnpausedEvent.OutputObject
+    >;
+    Unpaused: TypedContractEvent<
+      UnpausedEvent.InputTuple,
+      UnpausedEvent.OutputTuple,
+      UnpausedEvent.OutputObject
     >;
 
     "Unstaked(bytes32,address,uint256)": TypedContractEvent<

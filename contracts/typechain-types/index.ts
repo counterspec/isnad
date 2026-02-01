@@ -94,6 +94,8 @@ export type { Strings } from "./@openzeppelin/contracts/utils/Strings";
 export { Strings__factory } from "./factories/@openzeppelin/contracts/utils/Strings__factory";
 export type { Checkpoints } from "./@openzeppelin/contracts/utils/structs/Checkpoints";
 export { Checkpoints__factory } from "./factories/@openzeppelin/contracts/utils/structs/Checkpoints__factory";
+export type { AutoUnpausable } from "./contracts/AutoUnpausable";
+export { AutoUnpausable__factory } from "./factories/contracts/AutoUnpausable__factory";
 export type { ISNADGovernor } from "./contracts/ISNADGovernor";
 export { ISNADGovernor__factory } from "./factories/contracts/ISNADGovernor__factory";
 export type { ISNADOracle } from "./contracts/ISNADOracle";

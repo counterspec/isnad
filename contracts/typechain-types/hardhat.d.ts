@@ -190,6 +190,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Checkpoints__factory>;
     getContractFactory(
+      name: "AutoUnpausable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.AutoUnpausable__factory>;
+    getContractFactory(
       name: "ISNADGovernor",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ISNADGovernor__factory>;
@@ -435,6 +439,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Checkpoints>;
     getContractAt(
+      name: "AutoUnpausable",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.AutoUnpausable>;
+    getContractAt(
       name: "ISNADGovernor",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -642,6 +651,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Checkpoints>;
     deployContract(
+      name: "AutoUnpausable",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.AutoUnpausable>;
+    deployContract(
       name: "ISNADGovernor",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ISNADGovernor>;
@@ -886,6 +899,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Checkpoints>;
+    deployContract(
+      name: "AutoUnpausable",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.AutoUnpausable>;
     deployContract(
       name: "ISNADGovernor",
       args: any[],
