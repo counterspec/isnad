@@ -136,6 +136,7 @@ export class Indexer {
   private async handleStakedEvent(log: any) {
     const { attestationId, auditor, resourceHash, amount, lockUntil: lockUntilTimestamp, lockDuration } = log.args;
     const hash = resourceHash as string;
+    const attId = attestationId as string;
     const lockDays = Number(lockDuration) / 86400; // Convert seconds to days
     const multiplier = LOCK_MULTIPLIERS[lockDays] || 1.0;
     const lockUntil = new Date(Number(lockUntilTimestamp) * 1000);
@@ -149,9 +150,11 @@ export class Indexer {
       update: {},
     });
 
-    // Create attestation
-    await prisma.attestation.create({
-      data: {
+    // Upsert attestation (use attestationId to avoid duplicates on re-sync)
+    await prisma.attestation.upsert({
+      where: { id: attId },
+      create: {
+        id: attId,
         resourceHash: hash,
         auditor,
         amount: BigInt(amount.toString()),
@@ -161,6 +164,7 @@ export class Indexer {
         txHash: log.transactionHash,
         blockNumber: BigInt(log.blockNumber.toString()),
       },
+      update: {}, // Don't update if exists
     });
 
     // Update resource trust score
