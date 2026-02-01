@@ -5,17 +5,17 @@ const commander_1 = require("commander");
 const viem_1 = require("viem");
 const chains_1 = require("viem/chains");
 const accounts_1 = require("viem/accounts");
-// Contract addresses (Base Sepolia - update after deployment)
+// Contract addresses
 const CONTRACTS = {
     84532: {
-        token: '0x0000000000000000000000000000000000000000',
-        registry: '0x0000000000000000000000000000000000000000',
-        staking: '0x0000000000000000000000000000000000000000',
+        token: '0xc41c1006A1AaC093C758A2f09de16fee2561651A',
+        registry: '0x5A06453257874Fd000738F28C462d17BFf8e1EA3',
+        staking: '0x58983D142A388A96B7d9F970005483AA044CCAD9',
     },
     8453: {
-        token: '0x0000000000000000000000000000000000000000',
-        registry: '0x0000000000000000000000000000000000000000',
-        staking: '0x0000000000000000000000000000000000000000',
+        token: '0x73F6d2BBef125b3A5F91Fe23c722f3C321f007E5',
+        registry: '0xb8264f3117b498ddF912EBF641B2301103D80f06',
+        staking: '0x916FFb3eB82616220b81b99f70c3B7679B9D62ca',
     },
 };
 // Minimal ABIs for CLI operations
