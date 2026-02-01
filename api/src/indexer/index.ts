@@ -180,12 +180,12 @@ export class Indexer {
         id: uniqueId,
         resourceHash: hash,
         auditor,
-        amount: amountVal,
+        amount: amountVal.toString(), // Store as string
         lockDuration: lockDays,
         lockUntil,
         multiplier,
         txHash: log.transactionHash,
-        blockNumber: blockVal,
+        blockNumber: blockVal.toString(), // Store as string
       },
       update: {}, // Don't update if exists
     });

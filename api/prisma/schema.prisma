@@ -41,7 +41,7 @@ model Attestation {
   resource      Resource @relation(fields: [resourceHash], references: [hash])
   
   auditor       String   // address
-  amount        BigInt   // staked amount in wei
+  amount        String   // staked amount in wei (stored as string to avoid BigInt issues)
   lockDuration  Int      // days
   lockUntil     DateTime
   multiplier    Float    // 1.0, 1.5, 2.0 based on lock
@@ -51,7 +51,7 @@ model Attestation {
   slashTx       String?
   
   txHash        String
-  blockNumber   BigInt
+  blockNumber   String   // stored as string to avoid BigInt issues
   createdAt     DateTime @default(now())
   
   @@index([resourceHash])
