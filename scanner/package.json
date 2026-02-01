@@ -1,0 +1,27 @@
+{
+  "name": "@isnad/scanner",
+  "version": "0.1.0",
+  "description": "ISNAD Scanner - Detection oracle for malicious AI resources",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "scan": "tsx src/cli.ts"
+  },
+  "keywords": ["isnad", "scanner", "security", "ai", "agents"],
+  "license": "MIT",
+  "dependencies": {
+    "viem": "^2.0.0",
+    "commander": "^12.0.0",
+    "chalk": "^5.3.0",
+    "dotenv": "^16.4.0",
+    "glob": "^10.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  }
+}
