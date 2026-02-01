@@ -2,15 +2,21 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import { useState } from 'react';
 
 export function Header() {
   const pathname = usePathname();
+  const { address, isConnected } = useAccount();
+  const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
+  const [showConnectors, setShowConnectors] = useState(false);
   
   const navLinks = [
     { href: '/check', label: 'Trust Checker' },
+    { href: '/stake', label: 'Stake' },
     { href: '/leaderboard', label: 'Auditors' },
-    { href: '/docs', label: 'Documentation' },
-    { href: '/about', label: 'About' },
+    { href: '/docs', label: 'Docs' },
   ];
 
   return (
@@ -21,20 +27,58 @@ export function Header() {
           <span className="font-bold text-lg tracking-tight">ISNAD_PROTOCOL</span>
         </Link>
         
-        <div className="flex gap-12">
+        <div className="flex items-center gap-8">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={`
                 text-[13px] font-bold uppercase tracking-wider no-underline
-                ${pathname === link.href ? 'text-black' : 'text-[var(--text-secondary)]'}
+                ${pathname === link.href || pathname?.startsWith(link.href + '/') ? 'text-black' : 'text-[var(--text-secondary)]'}
                 hover:text-black transition-colors
               `}
             >
               {link.label}
             </Link>
           ))}
+          
+          {/* Wallet Connection */}
+          <div className="relative">
+            {isConnected ? (
+              <button
+                onClick={() => disconnect()}
+                className="btn-secondary text-xs py-2 px-3 font-mono"
+                title="Click to disconnect"
+              >
+                {address?.slice(0, 6)}...{address?.slice(-4)}
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => setShowConnectors(!showConnectors)}
+                  className="btn-primary text-xs py-2 px-4"
+                >
+                  Connect
+                </button>
+                {showConnectors && (
+                  <div className="absolute right-0 top-full mt-2 bg-white border-2 border-black shadow-[4px_4px_0_0_black] z-50 min-w-[200px]">
+                    {connectors.map((connector) => (
+                      <button
+                        key={connector.uid}
+                        onClick={() => {
+                          connect({ connector });
+                          setShowConnectors(false);
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm font-semibold hover:bg-[var(--bg-subtle)] border-b border-[var(--border-dim)] last:border-0"
+                      >
+                        {connector.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </nav>
