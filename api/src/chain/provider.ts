@@ -1,12 +1,14 @@
 /**
  * Multi-network provider for ISNAD API
+ * 
+ * Note: Using @ts-ignore to suppress viem's strict chain-specific types.
+ * base and baseSepolia have incompatible transaction types (deposit vs legacy).
  */
 
 import { createPublicClient, http } from 'viem';
 import { base, baseSepolia } from 'viem/chains';
 import { NetworkConfig, NETWORKS, NetworkName } from './networks';
 
-// Use Record to avoid viem's strict chain-specific PublicClient types
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const clients: Record<string, any> = {};
 
@@ -19,15 +21,13 @@ export function getClient(network: NetworkConfig): any {
     return clients[network.name];
   }
 
-  const chainConfig = network.name === 'mainnet' ? base : baseSepolia;
-  
-  // Cast to any to avoid viem's chain-specific type inference
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const newClient: any = createPublicClient({
-    chain: chainConfig,
+  // @ts-ignore - viem chain types are incompatible between base/baseSepolia
+  const newClient = createPublicClient({
+    chain: network.name === 'mainnet' ? base : baseSepolia,
     transport: http(network.rpcUrl),
   });
 
+  // @ts-ignore - storing in untyped cache
   clients[network.name] = newClient;
   return newClient;
 }
@@ -50,8 +50,8 @@ export function getSepoliaClient(): any {
 
 // Legacy exports for indexer compatibility
 export const chain = base;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const client: any = createPublicClient({
+// @ts-ignore - viem type inference
+export const client = createPublicClient({
   chain: base,
   transport: http(NETWORKS.mainnet.rpcUrl),
 });
