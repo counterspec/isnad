@@ -1,6 +1,6 @@
 {
   "name": "isnad-cli",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "CLI for ISNAD protocol - trust layer for AI agents",
   "main": "dist/index.js",
   "bin": {
