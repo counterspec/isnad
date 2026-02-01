@@ -9,7 +9,8 @@ const RPC_URL = process.env.RPC_URL || 'https://mainnet.base.org';
 
 export const chain = base;
 
-export const client = createPublicClient({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const client: any = createPublicClient({
   chain: base,
   transport: http(RPC_URL),
 });

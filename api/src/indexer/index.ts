@@ -1,7 +1,12 @@
 import { PrismaClient } from '@prisma/client';
-import { client, chain } from '../chain/provider';
+import * as provider from '../chain/provider';
 import { ADDRESSES, STAKING_ABI, REGISTRY_ABI } from '../chain/contracts';
 import { parseAbiItem, decodeEventLog, Log } from 'viem';
+
+// Cast to any to avoid viem type conflicts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const client: any = provider.client;
+const chain = provider.chain;
 
 const prisma = new PrismaClient();
 
