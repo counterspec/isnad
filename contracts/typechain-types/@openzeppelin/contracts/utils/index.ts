@@ -9,6 +9,8 @@ import type * as math from "./math";
 export type { math };
 import type * as structs from "./structs";
 export type { structs };
+export type { Address } from "./Address";
+export type { Errors } from "./Errors";
 export type { Nonces } from "./Nonces";
 export type { ReentrancyGuard } from "./ReentrancyGuard";
 export type { ShortStrings } from "./ShortStrings";
