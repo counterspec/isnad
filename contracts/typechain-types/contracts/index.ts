@@ -8,5 +8,6 @@ export type { ISNADRegistry } from "./ISNADRegistry";
 export type { ISNADRewardPool } from "./ISNADRewardPool";
 export type { ISNADStaking } from "./ISNADStaking";
 export type { ISNADStakingV2 } from "./ISNADStakingV2";
+export type { ISNADStakingV3 } from "./ISNADStakingV3";
 export type { ISNADToken } from "./ISNADToken";
 export type { MockISNAD } from "./MockISNAD";

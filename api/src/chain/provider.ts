@@ -2,29 +2,31 @@
  * Multi-network provider for ISNAD API
  */
 
-import { createPublicClient, http, PublicClient } from 'viem';
+import { createPublicClient, http, PublicClient, Chain } from 'viem';
 import { base, baseSepolia } from 'viem/chains';
 import { NetworkConfig, NETWORKS, NetworkName } from './networks';
 
-// Cache clients per network
-const clients: Map<NetworkName, PublicClient> = new Map();
+// Use 'any' for the client map to avoid viem's strict chain-specific types
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const clients: Map<NetworkName, any> = new Map();
 
 /**
  * Get a viem PublicClient for the specified network
  */
-export function getClient(network: NetworkConfig): PublicClient {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getClient(network: NetworkConfig): any {
   const cached = clients.get(network.name);
   if (cached) return cached;
 
-  const chain = network.name === 'mainnet' ? base : baseSepolia;
+  const chainConfig = network.name === 'mainnet' ? base : baseSepolia;
   
-  const client = createPublicClient({
-    chain,
+  const newClient = createPublicClient({
+    chain: chainConfig,
     transport: http(network.rpcUrl),
   });
 
-  clients.set(network.name, client);
-  return client;
+  clients.set(network.name, newClient);
+  return newClient;
 }
 
 /**
@@ -40,3 +42,10 @@ export function getMainnetClient(): PublicClient {
 export function getSepoliaClient(): PublicClient {
   return getClient(NETWORKS.sepolia);
 }
+
+// Legacy exports for indexer compatibility
+export const chain = base;
+export const client = createPublicClient({
+  chain: base,
+  transport: http(NETWORKS.mainnet.rpcUrl),
+});

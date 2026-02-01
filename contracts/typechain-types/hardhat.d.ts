@@ -218,6 +218,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ISNADStakingV2__factory>;
     getContractFactory(
+      name: "ISNADStakingV3",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ISNADStakingV3__factory>;
+    getContractFactory(
       name: "ISNADToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ISNADToken__factory>;
@@ -482,6 +486,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ISNADStakingV2>;
     getContractAt(
+      name: "ISNADStakingV3",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ISNADStakingV3>;
+    getContractAt(
       name: "ISNADToken",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -697,6 +706,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ISNADStakingV2>;
     deployContract(
+      name: "ISNADStakingV3",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ISNADStakingV3>;
+    deployContract(
       name: "ISNADToken",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ISNADToken>;
@@ -960,6 +973,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ISNADStakingV2>;
+    deployContract(
+      name: "ISNADStakingV3",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ISNADStakingV3>;
     deployContract(
       name: "ISNADToken",
       args: any[],
