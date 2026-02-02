@@ -9,7 +9,7 @@ export default function LeaderboardPage() {
     <div className="py-16">
       <div className="layout-container">
         <section className="mb-12">
-          <h1 className="text-4xl font-bold mb-4">Auditor Leaderboard</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-4">Auditor Leaderboard</h1>
           <p className="text-lg text-[var(--text-secondary)] max-w-2xl">
             Top auditors ranked by total $ISNAD staked. Track record includes audit count, 
             accuracy rate, and burn history.
@@ -36,7 +36,8 @@ export default function LeaderboardPage() {
 
         {!isLoading && !error && auditors.length > 0 && (
           <div className="card overflow-hidden p-0">
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[600px]">
               <thead>
                 <tr className="border-b-2 border-black">
                   <th className="text-left p-4 font-bold text-sm uppercase tracking-wider">Rank</th>
@@ -70,6 +71,7 @@ export default function LeaderboardPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
 

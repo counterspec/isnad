@@ -1,7 +1,7 @@
 export default function TiersPage() {
   return (
     <article>
-      <h1 className="text-4xl font-bold mb-6 tracking-tight">Trust Tiers</h1>
+      <h1 className="text-3xl sm:text-4xl font-bold mb-6 tracking-tight">Trust Tiers</h1>
       <p className="text-lg text-[var(--text-secondary)] mb-8">
         Resources are classified into tiers based on the total weighted stake from auditors.
       </p>
@@ -43,8 +43,8 @@ export default function TiersPage() {
       <p className="text-[var(--text-secondary)] mb-4">
         Trust scores account for lock duration. Longer locks indicate stronger conviction:
       </p>
-      <div className="card overflow-hidden p-0">
-        <table className="w-full text-sm">
+      <div className="card overflow-x-auto p-0">
+        <table className="w-full text-sm min-w-[500px]">
           <thead className="border-b-2 border-black">
             <tr>
               <th className="text-left p-3 font-bold">Lock Period</th>

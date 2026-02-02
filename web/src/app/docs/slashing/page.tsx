@@ -1,7 +1,7 @@
 export default function SlashingPage() {
   return (
     <article>
-      <h1 className="text-4xl font-bold mb-6 tracking-tight">Detection & Slashing</h1>
+      <h1 className="text-3xl sm:text-4xl font-bold mb-6 tracking-tight">Detection & Slashing</h1>
       <p className="text-lg text-[var(--text-secondary)] mb-8">
         How malicious resources are flagged, reviewed, and how slashing works.
       </p>

@@ -1,7 +1,7 @@
 export default function ContractsPage() {
   return (
     <article>
-      <h1 className="text-4xl font-bold mb-6 tracking-tight">Smart Contracts</h1>
+      <h1 className="text-3xl sm:text-4xl font-bold mb-6 tracking-tight">Smart Contracts</h1>
       <p className="text-lg text-[var(--text-secondary)] mb-8">
         On-chain architecture and deployed contract addresses.
       </p>
@@ -9,8 +9,8 @@ export default function ContractsPage() {
       <h2 className="text-2xl font-bold mt-8 mb-4 pb-2 border-b border-[var(--border-dim)]">
         Contract Addresses (Base Sepolia)
       </h2>
-      <div className="card overflow-hidden p-0 mb-8">
-        <table className="w-full text-sm">
+      <div className="card overflow-x-auto p-0 mb-8">
+        <table className="w-full text-sm min-w-[500px]">
           <thead className="border-b-2 border-black">
             <tr>
               <th className="text-left p-3 font-bold">Contract</th>

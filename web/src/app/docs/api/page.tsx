@@ -3,7 +3,7 @@ import { CodeBlock } from '@/components/CodeBlock';
 export default function ApiPage() {
   return (
     <article>
-      <h1 className="text-4xl font-bold mb-6 tracking-tight">API Reference</h1>
+      <h1 className="text-3xl sm:text-4xl font-bold mb-6 tracking-tight">API Reference</h1>
       <p className="text-lg text-[var(--text-secondary)] mb-8">
         REST API for querying trust scores, resources, and auditor data.
       </p>

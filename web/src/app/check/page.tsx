@@ -44,12 +44,12 @@ export default function CheckPage() {
       <div className="layout-container">
         {/* Search Hero */}
         <section className="mb-12">
-          <h1 className="text-4xl font-bold mb-4">Trust Checker</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-4">Trust Checker</h1>
           <p className="text-lg text-[var(--text-secondary)] mb-8 max-w-2xl">
             Enter a skill URL, package name, or content hash to check its trust score and audit history.
           </p>
           
-          <form onSubmit={handleSearch} className="flex gap-4 max-w-2xl">
+          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 sm:gap-4 max-w-2xl">
             <input
               type="text"
               value={searchTerm}
@@ -86,10 +86,10 @@ export default function CheckPage() {
           <div className="space-y-6">
             {/* Main Result Card */}
             <div className="card">
-              <div className="flex justify-between items-start mb-6">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
                 <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <h2 className="text-2xl font-bold">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                    <h2 className="text-xl sm:text-2xl font-bold">
                       {result.resource?.name || 'Unknown Resource'}
                     </h2>
                     <span className={`badge ${getTierBadgeClass(result.trustTier)}`}>
@@ -100,28 +100,28 @@ export default function CheckPage() {
                     {result.resource?.type || 'UNKNOWN'} • {result.resource?.hash.slice(0, 16)}...
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-3xl font-bold">{formatTokenAmount(result.trustScore)}</div>
+                <div className="sm:text-right">
+                  <div className="text-2xl sm:text-3xl font-bold">{formatTokenAmount(result.trustScore)}</div>
                   <div className="text-sm text-[var(--text-tertiary)]">$ISNAD staked</div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-6 pt-6 border-t border-[var(--border-dim)]">
+              <div className="grid grid-cols-3 gap-3 sm:gap-6 pt-6 border-t border-[var(--border-dim)]">
                 <div>
-                  <div className="text-2xl font-bold">{result.attestations.length}</div>
-                  <div className="text-sm text-[var(--text-tertiary)]">Auditors</div>
+                  <div className="text-xl sm:text-2xl font-bold">{result.attestations.length}</div>
+                  <div className="text-xs sm:text-sm text-[var(--text-tertiary)]">Auditors</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">
+                  <div className="text-xl sm:text-2xl font-bold">
                     {result.resource?.blockNumber.toLocaleString() || '—'}
                   </div>
-                  <div className="text-sm text-[var(--text-tertiary)]">Block Inscribed</div>
+                  <div className="text-xs sm:text-sm text-[var(--text-tertiary)]">Block Inscribed</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">
+                  <div className="text-xl sm:text-2xl font-bold">
                     {result.attestations.filter(a => a.slashed).length}
                   </div>
-                  <div className="text-sm text-[var(--text-tertiary)]">Slashed</div>
+                  <div className="text-xs sm:text-sm text-[var(--text-tertiary)]">Slashed</div>
                 </div>
               </div>
             </div>

@@ -3,7 +3,7 @@ import { CodeBlock } from '@/components/CodeBlock';
 export default function StakingPage() {
   return (
     <article>
-      <h1 className="text-4xl font-bold mb-6 tracking-tight">Staking Guide</h1>
+      <h1 className="text-3xl sm:text-4xl font-bold mb-6 tracking-tight">Staking Guide</h1>
       <p className="text-lg text-[var(--text-secondary)] mb-8">
         Step-by-step guide to staking $ISNAD and creating attestations.
       </p>
@@ -86,8 +86,8 @@ export default function StakingPage() {
       <h2 className="text-2xl font-bold mt-8 mb-4 pb-2 border-b border-[var(--border-dim)]">
         Staking Limits
       </h2>
-      <div className="card overflow-hidden p-0">
-        <table className="w-full text-sm">
+      <div className="card overflow-x-auto p-0">
+        <table className="w-full text-sm min-w-[500px]">
           <tbody>
             <tr className="border-b border-[var(--border-dim)]">
               <td className="p-3 font-bold">Max per auditor</td>

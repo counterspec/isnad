@@ -3,7 +3,7 @@ import { CodeBlock } from '@/components/CodeBlock';
 export default function IntegrationPage() {
   return (
     <article>
-      <h1 className="text-4xl font-bold mb-6 tracking-tight">Integration Guide</h1>
+      <h1 className="text-3xl sm:text-4xl font-bold mb-6 tracking-tight">Integration Guide</h1>
       <p className="text-lg text-[var(--text-secondary)] mb-8">
         Add ISNAD trust checks to your AI agent or application.
       </p>

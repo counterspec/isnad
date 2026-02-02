@@ -6,7 +6,7 @@ export default function DocsIntroPage() {
       <span className="inline-block bg-black text-white px-2 py-0.5 text-xs font-mono mb-3">
         v1.0.0-BETA
       </span>
-      <h1 className="text-4xl font-bold mb-6 tracking-tight">Introduction to ISNAD</h1>
+      <h1 className="text-3xl sm:text-4xl font-bold mb-6 tracking-tight">Introduction to ISNAD</h1>
       
       <p className="text-lg text-[var(--text-secondary)] mb-8">
         ISNAD is the decentralized trust layer for AI resources. The protocol provides a 
@@ -43,8 +43,8 @@ export default function DocsIntroPage() {
       <p className="text-[var(--text-secondary)] mb-4">
         Resources are classified into tiers based on total weighted stake:
       </p>
-      <div className="card overflow-hidden p-0 mb-6">
-        <table className="w-full text-sm">
+      <div className="card overflow-x-auto p-0 mb-6">
+        <table className="w-full text-sm min-w-[500px]">
           <thead className="border-b-2 border-black">
             <tr>
               <th className="text-left p-3 font-bold">Tier</th>

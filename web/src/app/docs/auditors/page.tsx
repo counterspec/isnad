@@ -1,7 +1,7 @@
 export default function AuditorsPage() {
   return (
     <article>
-      <h1 className="text-4xl font-bold mb-6 tracking-tight">Becoming an Auditor</h1>
+      <h1 className="text-3xl sm:text-4xl font-bold mb-6 tracking-tight">Becoming an Auditor</h1>
       <p className="text-lg text-[var(--text-secondary)] mb-8">
         Auditors stake $ISNAD tokens to vouch for resource safety and earn yield for accurate attestations.
       </p>

@@ -92,7 +92,7 @@ export default function StakePage() {
       <div className="py-16">
         <div className="layout-container">
           <section className="mb-12">
-            <h1 className="text-4xl font-bold mb-4">Stake $ISNAD</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold mb-4">Stake $ISNAD</h1>
             <p className="text-lg text-[var(--text-secondary)] mb-8 max-w-2xl">
               Connect your wallet to stake tokens and create attestations.
             </p>
@@ -114,7 +114,7 @@ export default function StakePage() {
       <div className="layout-container">
         {/* Header */}
         <section className="mb-12">
-          <h1 className="text-4xl font-bold mb-4">Stake $ISNAD</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-4">Stake $ISNAD</h1>
           <p className="text-lg text-[var(--text-secondary)] max-w-2xl">
             Stake tokens to attest to resource safety and earn yield.
           </p>

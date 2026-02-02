@@ -3,7 +3,7 @@ import { CodeBlock } from '@/components/CodeBlock';
 export default function QuickstartPage() {
   return (
     <article>
-      <h1 className="text-4xl font-bold mb-6 tracking-tight">Quick Start</h1>
+      <h1 className="text-3xl sm:text-4xl font-bold mb-6 tracking-tight">Quick Start</h1>
       <p className="text-lg text-[var(--text-secondary)] mb-8">
         Check your first resource's trust score in under 2 minutes.
       </p>
