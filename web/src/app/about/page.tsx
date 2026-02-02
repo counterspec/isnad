@@ -134,62 +134,73 @@ function HeroSection() {
 
     let animationId: number;
     let time = 0;
+    let imageData: ImageData;
 
     const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight * 0.7;
+      // Use lower resolution for performance, scale up with CSS
+      const scale = 0.25;
+      canvas.width = Math.floor(window.innerWidth * scale);
+      canvas.height = Math.floor(window.innerHeight * 0.7 * scale);
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      imageData = ctx.createImageData(canvas.width, canvas.height);
     };
     resize();
     window.addEventListener('resize', resize);
 
-    // Particles
-    const particles: { x: number; y: number; vx: number; vy: number; size: number; opacity: number }[] = [];
-    for (let i = 0; i < 60; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        size: 1 + Math.random() * 2,
-        opacity: 0.2 + Math.random() * 0.3,
-      });
-    }
-
+    // Rocaille shader adapted from @XorDev
+    // https://x.com/XorDev/status/2015813875833225715
     const animate = () => {
-      time++;
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      time += 0.02;
+      const w = canvas.width;
+      const h = canvas.height;
+      const data = imageData.data;
 
-      // Draw connections
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 120) {
-            ctx.strokeStyle = `rgba(197, 160, 89, ${(1 - dist / 120) * 0.15})`;
-            ctx.lineWidth = 0.5;
-            ctx.beginPath();
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.stroke();
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          // Normalize coordinates (centered, aspect-corrected)
+          const px = ((x * 2 - w) / h) * 0.3;
+          const py = ((y * 2 - h) / h) * 0.3;
+
+          // Accumulate color channels
+          let r = 0, g = 0, b = 0, a = 0;
+
+          for (let i = 1; i <= 10; i++) {
+            let vx = px, vy = py;
+
+            // Inner iteration - flow distortion
+            for (let f = 1; f <= 9; f++) {
+              const newVx = vx + Math.sin(vy * f + i + time) / f;
+              const newVy = vy + Math.sin(vx * f + i + time) / f;
+              vx = newVx;
+              vy = newVy;
+            }
+
+            const len = Math.sqrt(vx * vx + vy * vy) + 0.001;
+            const intensity = 1 / (6 * len);
+
+            // Color channels offset by phase (golden palette)
+            r += (Math.cos(i) + 1) * intensity;
+            g += (Math.cos(i + 1) + 1) * intensity;
+            b += (Math.cos(i + 2) + 1) * intensity;
+            a += (Math.cos(i + 3) + 1) * intensity;
           }
+
+          // Apply tanh-like compression and golden tint
+          const tanh = (x: number) => Math.tanh(x * x);
+          r = tanh(r) * 0.77;  // Gold: 197/255
+          g = tanh(g) * 0.63;  // Gold: 160/255
+          b = tanh(b) * 0.35;  // Gold: 89/255
+
+          const idx = (y * w + x) * 4;
+          data[idx] = Math.min(255, r * 255);
+          data[idx + 1] = Math.min(255, g * 255);
+          data[idx + 2] = Math.min(255, b * 255);
+          data[idx + 3] = 180; // Semi-transparent
         }
       }
 
-      // Draw and update particles
-      particles.forEach(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-        ctx.fillStyle = `rgba(197, 160, 89, ${p.opacity})`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
+      ctx.putImageData(imageData, 0, 0);
       animationId = requestAnimationFrame(animate);
     };
 

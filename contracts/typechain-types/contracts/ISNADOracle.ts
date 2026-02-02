@@ -31,6 +31,7 @@ export declare namespace ISNADOracle {
     evidenceHash: BytesLike;
     status: BigNumberish;
     createdAt: BigNumberish;
+    commitBlock: BigNumberish;
     juryDeadline: BigNumberish;
     voteCount: BigNumberish;
     guiltyVotes: BigNumberish;
@@ -43,6 +44,7 @@ export declare namespace ISNADOracle {
     evidenceHash: string,
     status: bigint,
     createdAt: bigint,
+    commitBlock: bigint,
     juryDeadline: bigint,
     voteCount: bigint,
     guiltyVotes: bigint
@@ -53,6 +55,7 @@ export declare namespace ISNADOracle {
     evidenceHash: string;
     status: bigint;
     createdAt: bigint;
+    commitBlock: bigint;
     juryDeadline: bigint;
     voteCount: bigint;
     guiltyVotes: bigint;
@@ -63,6 +66,7 @@ export interface ISNADOracleInterface extends Interface {
   getFunction(
     nameOrSignature:
       | "ADMIN_ROLE"
+      | "COMMIT_BLOCKS"
       | "DEFAULT_ADMIN_ROLE"
       | "MAX_PAUSE_DURATION"
       | "PAUSER_ROLE"
@@ -124,6 +128,10 @@ export interface ISNADOracleInterface extends Interface {
 
   encodeFunctionData(
     functionFragment: "ADMIN_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "COMMIT_BLOCKS",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -272,6 +280,10 @@ export interface ISNADOracleInterface extends Interface {
   ): string;
 
   decodeFunctionResult(functionFragment: "ADMIN_ROLE", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "COMMIT_BLOCKS",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "DEFAULT_ADMIN_ROLE",
     data: BytesLike
@@ -638,6 +650,8 @@ export interface ISNADOracle extends BaseContract {
 
   ADMIN_ROLE: TypedContractMethod<[], [string], "view">;
 
+  COMMIT_BLOCKS: TypedContractMethod<[], [bigint], "view">;
+
   DEFAULT_ADMIN_ROLE: TypedContractMethod<[], [string], "view">;
 
   MAX_PAUSE_DURATION: TypedContractMethod<[], [bigint], "view">;
@@ -692,6 +706,7 @@ export interface ISNADOracle extends BaseContract {
         bigint,
         bigint,
         bigint,
+        bigint,
         bigint
       ] & {
         resourceHash: string;
@@ -700,6 +715,7 @@ export interface ISNADOracle extends BaseContract {
         evidenceHash: string;
         status: bigint;
         createdAt: bigint;
+        commitBlock: bigint;
         juryDeadline: bigint;
         voteCount: bigint;
         guiltyVotes: bigint;
@@ -842,6 +858,9 @@ export interface ISNADOracle extends BaseContract {
     nameOrSignature: "ADMIN_ROLE"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
+    nameOrSignature: "COMMIT_BLOCKS"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
     nameOrSignature: "DEFAULT_ADMIN_ROLE"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
@@ -892,6 +911,7 @@ export interface ISNADOracle extends BaseContract {
         bigint,
         bigint,
         bigint,
+        bigint,
         bigint
       ] & {
         resourceHash: string;
@@ -900,6 +920,7 @@ export interface ISNADOracle extends BaseContract {
         evidenceHash: string;
         status: bigint;
         createdAt: bigint;
+        commitBlock: bigint;
         juryDeadline: bigint;
         voteCount: bigint;
         guiltyVotes: bigint;

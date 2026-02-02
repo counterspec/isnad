@@ -36,10 +36,10 @@
 
 ### Deployment Checklist
 - [x] Deploy Registry V2 to Base mainnet — `0x7EA99470e22E5149F97FbDeB5807AEF54Deafc01`
-- [ ] Verify on BaseScan
-- [ ] Update API config (`api/src/config.ts`)
-- [ ] Update web config (`web/src/config.ts`)
-- [ ] Update indexer to dual-watch
+- [x] Verify on BaseScan — https://basescan.org/address/0x7EA99470e22E5149F97FbDeB5807AEF54Deafc01#code
+- [x] Update API config (`api/src/chain/networks.ts`)
+- [x] Update web config (`web/src/lib/contracts.ts`)
+- [ ] Rebuild & redeploy API to Railway
 - [ ] Announce migration
 
 ---

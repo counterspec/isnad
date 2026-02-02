@@ -26,6 +26,7 @@ import type {
 export interface ISNADRegistryInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "CHUNK_TIMEOUT"
       | "TYPE_AGENT_CARD"
       | "TYPE_MODEL_CARD"
       | "TYPE_PROMPT"
@@ -35,6 +36,7 @@ export interface ISNADRegistryInterface extends Interface {
       | "TYPE_WORKFLOW"
       | "author"
       | "blockNumber"
+      | "cleanupAbandonedChunk"
       | "deprecate"
       | "exists"
       | "getChunkStatus"
@@ -48,11 +50,16 @@ export interface ISNADRegistryInterface extends Interface {
 
   getEvent(
     nameOrSignatureOrTopic:
+      | "ChunkCleanedUp"
       | "ChunkInscribed"
       | "ResourceDeprecated"
       | "ResourceInscribed"
   ): EventFragment;
 
+  encodeFunctionData(
+    functionFragment: "CHUNK_TIMEOUT",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "TYPE_AGENT_CARD",
     values?: undefined
@@ -81,6 +88,10 @@ export interface ISNADRegistryInterface extends Interface {
   encodeFunctionData(functionFragment: "author", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "blockNumber",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "cleanupAbandonedChunk",
     values: [BytesLike]
   ): string;
   encodeFunctionData(
@@ -125,6 +136,10 @@ export interface ISNADRegistryInterface extends Interface {
   ): string;
 
   decodeFunctionResult(
+    functionFragment: "CHUNK_TIMEOUT",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "TYPE_AGENT_CARD",
     data: BytesLike
   ): Result;
@@ -154,6 +169,10 @@ export interface ISNADRegistryInterface extends Interface {
     functionFragment: "blockNumber",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "cleanupAbandonedChunk",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "deprecate", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "exists", data: BytesLike): Result;
   decodeFunctionResult(
@@ -181,6 +200,22 @@ export interface ISNADRegistryInterface extends Interface {
     functionFragment: "supersededBy",
     data: BytesLike
   ): Result;
+}
+
+export namespace ChunkCleanedUpEvent {
+  export type InputTuple = [
+    contentHash: BytesLike,
+    originalAuthor: AddressLike
+  ];
+  export type OutputTuple = [contentHash: string, originalAuthor: string];
+  export interface OutputObject {
+    contentHash: string;
+    originalAuthor: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export namespace ChunkInscribedEvent {
@@ -301,6 +336,8 @@ export interface ISNADRegistry extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  CHUNK_TIMEOUT: TypedContractMethod<[], [bigint], "view">;
+
   TYPE_AGENT_CARD: TypedContractMethod<[], [bigint], "view">;
 
   TYPE_MODEL_CARD: TypedContractMethod<[], [bigint], "view">;
@@ -319,6 +356,12 @@ export interface ISNADRegistry extends BaseContract {
 
   blockNumber: TypedContractMethod<[arg0: BytesLike], [bigint], "view">;
 
+  cleanupAbandonedChunk: TypedContractMethod<
+    [contentHash: BytesLike],
+    [void],
+    "nonpayable"
+  >;
+
   deprecate: TypedContractMethod<
     [contentHash: BytesLike, newContentHash: BytesLike],
     [void],
@@ -330,11 +373,12 @@ export interface ISNADRegistry extends BaseContract {
   getChunkStatus: TypedContractMethod<
     [contentHash: BytesLike],
     [
-      [boolean, bigint, bigint, string] & {
+      [boolean, bigint, bigint, string, bigint] & {
         pending: boolean;
         received: bigint;
         total: bigint;
         chunkAuthor: string;
+        createdAt: bigint;
       }
     ],
     "view"
@@ -386,11 +430,12 @@ export interface ISNADRegistry extends BaseContract {
   pendingChunks: TypedContractMethod<
     [arg0: BytesLike],
     [
-      [string, bigint, bigint, string] & {
+      [string, bigint, bigint, string, bigint] & {
         contentHash: string;
         totalChunks: bigint;
         receivedChunks: bigint;
         author: string;
+        createdAt: bigint;
       }
     ],
     "view"
@@ -402,6 +447,9 @@ export interface ISNADRegistry extends BaseContract {
     key: string | FunctionFragment
   ): T;
 
+  getFunction(
+    nameOrSignature: "CHUNK_TIMEOUT"
+  ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "TYPE_AGENT_CARD"
   ): TypedContractMethod<[], [bigint], "view">;
@@ -430,6 +478,9 @@ export interface ISNADRegistry extends BaseContract {
     nameOrSignature: "blockNumber"
   ): TypedContractMethod<[arg0: BytesLike], [bigint], "view">;
   getFunction(
+    nameOrSignature: "cleanupAbandonedChunk"
+  ): TypedContractMethod<[contentHash: BytesLike], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "deprecate"
   ): TypedContractMethod<
     [contentHash: BytesLike, newContentHash: BytesLike],
@@ -444,11 +495,12 @@ export interface ISNADRegistry extends BaseContract {
   ): TypedContractMethod<
     [contentHash: BytesLike],
     [
-      [boolean, bigint, bigint, string] & {
+      [boolean, bigint, bigint, string, bigint] & {
         pending: boolean;
         received: bigint;
         total: bigint;
         chunkAuthor: string;
+        createdAt: bigint;
       }
     ],
     "view"
@@ -501,11 +553,12 @@ export interface ISNADRegistry extends BaseContract {
   ): TypedContractMethod<
     [arg0: BytesLike],
     [
-      [string, bigint, bigint, string] & {
+      [string, bigint, bigint, string, bigint] & {
         contentHash: string;
         totalChunks: bigint;
         receivedChunks: bigint;
         author: string;
+        createdAt: bigint;
       }
     ],
     "view"
@@ -514,6 +567,13 @@ export interface ISNADRegistry extends BaseContract {
     nameOrSignature: "supersededBy"
   ): TypedContractMethod<[arg0: BytesLike], [string], "view">;
 
+  getEvent(
+    key: "ChunkCleanedUp"
+  ): TypedContractEvent<
+    ChunkCleanedUpEvent.InputTuple,
+    ChunkCleanedUpEvent.OutputTuple,
+    ChunkCleanedUpEvent.OutputObject
+  >;
   getEvent(
     key: "ChunkInscribed"
   ): TypedContractEvent<
@@ -537,6 +597,17 @@ export interface ISNADRegistry extends BaseContract {
   >;
 
   filters: {
+    "ChunkCleanedUp(bytes32,address)": TypedContractEvent<
+      ChunkCleanedUpEvent.InputTuple,
+      ChunkCleanedUpEvent.OutputTuple,
+      ChunkCleanedUpEvent.OutputObject
+    >;
+    ChunkCleanedUp: TypedContractEvent<
+      ChunkCleanedUpEvent.InputTuple,
+      ChunkCleanedUpEvent.OutputTuple,
+      ChunkCleanedUpEvent.OutputObject
+    >;
+
     "ChunkInscribed(bytes32,uint16,uint16,address)": TypedContractEvent<
       ChunkInscribedEvent.InputTuple,
       ChunkInscribedEvent.OutputTuple,
