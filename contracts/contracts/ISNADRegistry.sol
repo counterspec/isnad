@@ -33,7 +33,11 @@ contract ISNADRegistry {
         uint16 totalChunks;      // Total chunks expected
         uint16 receivedChunks;   // Chunks received so far
         address author;          // Who started the chunked inscription
+        uint256 createdAt;       // Timestamp for timeout enforcement
     }
+    
+    // Timeout for abandoned chunk sequences (24 hours)
+    uint256 public constant CHUNK_TIMEOUT = 24 hours;
 
     // Minimal on-chain state
     mapping(bytes32 => bool) public exists;
@@ -135,6 +139,7 @@ contract ISNADRegistry {
             info.totalChunks = totalChunks;
             info.receivedChunks = 1;
             info.author = msg.sender;
+            info.createdAt = block.timestamp;
         } else {
             // Subsequent chunks must be from same author
             require(info.author == msg.sender, "Not chunk author");
@@ -215,14 +220,37 @@ contract ISNADRegistry {
         bool pending,
         uint16 received,
         uint16 total,
-        address chunkAuthor
+        address chunkAuthor,
+        uint256 createdAt
     ) {
         ChunkInfo storage info = pendingChunks[contentHash];
         return (
             info.author != address(0),
             info.receivedChunks,
             info.totalChunks,
-            info.author
+            info.author,
+            info.createdAt
         );
     }
+    
+    /**
+     * @notice Clean up abandoned chunk sequence after timeout
+     * @param contentHash Hash of the abandoned chunked inscription
+     * @dev Anyone can call this to free up blocked content hashes
+     */
+    function cleanupAbandonedChunk(bytes32 contentHash) external {
+        ChunkInfo storage info = pendingChunks[contentHash];
+        require(info.author != address(0), "No pending chunk");
+        require(block.timestamp >= info.createdAt + CHUNK_TIMEOUT, "Timeout not reached");
+        
+        // Save author before deleting
+        address originalAuthor = info.author;
+        
+        // Clean up - allows contentHash to be reused
+        delete pendingChunks[contentHash];
+        
+        emit ChunkCleanedUp(contentHash, originalAuthor);
+    }
+    
+    event ChunkCleanedUp(bytes32 indexed contentHash, address indexed originalAuthor);
 }

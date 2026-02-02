@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
 import { 
   ISNADToken, 
   ISNADRegistry, 
@@ -14,6 +14,13 @@ import { createHash } from "crypto";
 function sha256Hash(data: Uint8Array): `0x${string}` {
   const hash = createHash('sha256').update(data).digest();
   return `0x${hash.toString('hex')}` as `0x${string}`;
+}
+
+// Helper to mine blocks for commit-reveal pattern
+async function mineBlocks(n: number) {
+  for (let i = 0; i < n; i++) {
+    await network.provider.send("evm_mine");
+  }
 }
 
 describe("ISNAD E2E Integration", function () {
@@ -174,6 +181,11 @@ describe("ISNAD E2E Integration", function () {
       const flagId = await oracle.activeFlag(contentHash);
       expect(flagId).to.not.equal(ethers.ZeroHash);
 
+      // Step 1b: Mine blocks and select jury (commit-reveal pattern)
+      console.log("1b. Selecting jury (commit-reveal)...");
+      await mineBlocks(6);
+      await oracle.selectJury(flagId);
+
       // Step 2: Jury votes (simulate 4 guilty, 1 innocent)
       console.log("2. Jury voting...");
       const jury = await oracle.getJury(flagId);
@@ -209,6 +221,10 @@ describe("ISNAD E2E Integration", function () {
       );
 
       const flagId = await oracle.activeFlag(contentHash);
+
+      // Step 1b: Mine blocks and select jury (commit-reveal pattern)
+      await mineBlocks(6);
+      await oracle.selectJury(flagId);
 
       // Step 2: Jury votes (simulate 4 innocent, 1 guilty)
       const jury = await oracle.getJury(flagId);

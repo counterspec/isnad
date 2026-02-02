@@ -1,7 +1,13 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
 import { ISNADRegistry } from "../typechain-types";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
+
+// Helper to advance time
+async function increaseTime(seconds: number) {
+  await network.provider.send("evm_increaseTime", [seconds]);
+  await network.provider.send("evm_mine");
+}
 
 describe("ISNADRegistry", function () {
   let registry: ISNADRegistry;
@@ -336,6 +342,83 @@ describe("ISNADRegistry", function () {
       expect(status.pending).to.be.false;
       expect(status.received).to.equal(0);
       expect(status.total).to.equal(0);
+    });
+  });
+
+  describe("Chunk Cleanup (Anti-Griefing)", function () {
+    const largeContent = ethers.toUtf8Bytes("X".repeat(1000));
+    const largeHash = ethers.sha256(largeContent);
+    const chunk = ethers.toUtf8Bytes("X".repeat(500));
+
+    it("should have correct CHUNK_TIMEOUT", async function () {
+      expect(await registry.CHUNK_TIMEOUT()).to.equal(24 * 60 * 60); // 24 hours
+    });
+
+    it("should revert cleanup before timeout", async function () {
+      // Start chunked inscription
+      await registry.connect(user1).inscribeChunk(
+        largeHash, 0, 2, 0, testMetadata, chunk
+      );
+
+      // Try to cleanup immediately - should fail
+      await expect(
+        registry.cleanupAbandonedChunk(largeHash)
+      ).to.be.revertedWith("Timeout not reached");
+    });
+
+    it("should allow cleanup after timeout", async function () {
+      // Start chunked inscription
+      await registry.connect(user1).inscribeChunk(
+        largeHash, 0, 2, 0, testMetadata, chunk
+      );
+
+      // Advance time past timeout (24 hours + 1 second)
+      await increaseTime(24 * 60 * 60 + 1);
+
+      // Cleanup should succeed
+      await expect(registry.cleanupAbandonedChunk(largeHash))
+        .to.emit(registry, "ChunkCleanedUp")
+        .withArgs(largeHash, user1.address);
+
+      // Chunk should be cleared
+      const status = await registry.getChunkStatus(largeHash);
+      expect(status.pending).to.be.false;
+    });
+
+    it("should allow re-inscription after cleanup", async function () {
+      // Start chunked inscription by user1
+      await registry.connect(user1).inscribeChunk(
+        largeHash, 0, 2, 0, testMetadata, chunk
+      );
+
+      // Advance time and cleanup
+      await increaseTime(24 * 60 * 60 + 1);
+      await registry.cleanupAbandonedChunk(largeHash);
+
+      // user2 should now be able to start inscription with same hash
+      await expect(
+        registry.connect(user2).inscribeChunk(
+          largeHash, 0, 2, 0, testMetadata, chunk
+        )
+      ).to.not.be.reverted;
+
+      const status = await registry.getChunkStatus(largeHash);
+      expect(status.chunkAuthor).to.equal(user2.address);
+    });
+
+    it("should revert cleanup for non-existent chunk", async function () {
+      await expect(
+        registry.cleanupAbandonedChunk(largeHash)
+      ).to.be.revertedWith("No pending chunk");
+    });
+
+    it("should track createdAt in chunk status", async function () {
+      await registry.connect(user1).inscribeChunk(
+        largeHash, 0, 2, 0, testMetadata, chunk
+      );
+
+      const status = await registry.getChunkStatus(largeHash);
+      expect(status.createdAt).to.be.gt(0);
     });
   });
 });

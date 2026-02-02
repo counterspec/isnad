@@ -1,7 +1,14 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
 import { ISNADOracle, ISNADToken, ISNADStaking } from "../typechain-types";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
+
+// Helper to mine blocks for commit-reveal pattern
+async function mineBlocks(n: number) {
+  for (let i = 0; i < n; i++) {
+    await network.provider.send("evm_mine");
+  }
+}
 
 describe("ISNADOracle", function () {
   let oracle: ISNADOracle;
@@ -92,18 +99,31 @@ describe("ISNADOracle", function () {
       ).to.be.revertedWith("Resource already flagged");
     });
 
-    it("should auto-select jury when pool is sufficient", async function () {
-      const tx = await oracle.connect(flagger).flagResource(
+    it("should select jury after commit-reveal period", async function () {
+      // Flag resource (commits to future block)
+      await oracle.connect(flagger).flagResource(
         RESOURCE_HASH,
         EVIDENCE_HASH,
         { value: MIN_DEPOSIT }
       );
 
-      const receipt = await tx.wait();
       const flagId = await oracle.activeFlag(RESOURCE_HASH);
-      const flag = await oracle.getFlag(flagId);
       
-      // Should be in review (jury selected)
+      // Should be pending (jury not yet selected)
+      let flag = await oracle.getFlag(flagId);
+      expect(flag.status).to.equal(0); // Pending
+
+      // Too early - should revert
+      await expect(oracle.selectJury(flagId)).to.be.revertedWith("Too early - wait for commit block");
+
+      // Mine past the commit block (COMMIT_BLOCKS = 5)
+      await mineBlocks(6);
+
+      // Now select jury
+      await oracle.selectJury(flagId);
+
+      // Should be in review
+      flag = await oracle.getFlag(flagId);
       expect(flag.status).to.equal(1); // InReview
 
       // Check jury was selected
@@ -122,6 +142,10 @@ describe("ISNADOracle", function () {
         { value: MIN_DEPOSIT }
       );
       flagId = await oracle.activeFlag(RESOURCE_HASH);
+      
+      // Mine blocks and select jury (commit-reveal)
+      await mineBlocks(6);
+      await oracle.selectJury(flagId);
     });
 
     it("should allow juror to vote", async function () {
@@ -170,6 +194,10 @@ describe("ISNADOracle", function () {
         { value: MIN_DEPOSIT }
       );
       flagId = await oracle.activeFlag(RESOURCE_HASH);
+      
+      // Mine blocks and select jury (commit-reveal)
+      await mineBlocks(6);
+      await oracle.selectJury(flagId);
     });
 
     it("should reach guilty verdict with supermajority", async function () {

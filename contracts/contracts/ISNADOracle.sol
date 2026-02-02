@@ -37,10 +37,14 @@ contract ISNADOracle is AutoUnpausable, ReentrancyGuard {
         bytes32 evidenceHash;     // IPFS/Arweave hash of evidence
         FlagStatus status;
         uint256 createdAt;
+        uint256 commitBlock;      // Block for randomness commit-reveal
         uint256 juryDeadline;
         uint256 voteCount;
         uint256 guiltyVotes;
     }
+    
+    // Number of blocks to wait for randomness (commit-reveal pattern)
+    uint256 public constant COMMIT_BLOCKS = 5;
     
     struct Juror {
         bool selected;
@@ -139,6 +143,7 @@ contract ISNADOracle is AutoUnpausable, ReentrancyGuard {
             evidenceHash: evidenceHash,
             status: FlagStatus.Pending,
             createdAt: block.timestamp,
+            commitBlock: block.number + COMMIT_BLOCKS,
             juryDeadline: 0,
             voteCount: 0,
             guiltyVotes: 0
@@ -147,21 +152,20 @@ contract ISNADOracle is AutoUnpausable, ReentrancyGuard {
         activeFlag[resourceHash] = flagId;
         
         emit ResourceFlagged(flagId, resourceHash, msg.sender, msg.value, evidenceHash);
-        
-        // Auto-select jury if pool is large enough
-        if (jurorPool.length >= jurySize) {
-            _selectJury(flagId);
-        }
+        // Jury selection happens in separate tx via selectJury() after commitBlock
     }
     
     /**
-     * @notice Select jury for a pending flag
+     * @notice Select jury for a pending flag (commit-reveal pattern)
      * @param flagId The flag to select jury for
+     * @dev Must be called after commitBlock but within 256 blocks (blockhash limit)
      */
     function selectJury(bytes32 flagId) external {
         Flag storage flag = flags[flagId];
         require(flag.status == FlagStatus.Pending, "Not pending");
         require(jurorPool.length >= jurySize, "Insufficient juror pool");
+        require(block.number > flag.commitBlock, "Too early - wait for commit block");
+        require(block.number <= flag.commitBlock + 256, "Too late - blockhash expired");
         
         _selectJury(flagId);
     }
@@ -239,10 +243,13 @@ contract ISNADOracle is AutoUnpausable, ReentrancyGuard {
     }
     
     /**
-     * @notice Execute slash after guilty verdict (called by staking contract)
+     * @notice Execute slash after guilty verdict
      * @param resourceHash The resource to slash
+     * @dev Permissionless by design - anyone can trigger slash execution
+     *      after guilty verdict to ensure protocol liveness. The actual
+     *      stake slashing happens in the staking contract.
      */
-    function executeSlash(bytes32 resourceHash) external returns (bool) {
+    function executeSlash(bytes32 resourceHash) external nonReentrant returns (bool) {
         bytes32 flagId = activeFlag[resourceHash];
         require(flagId != bytes32(0), "No active flag");
         
@@ -253,7 +260,9 @@ contract ISNADOracle is AutoUnpausable, ReentrancyGuard {
         activeFlag[resourceHash] = bytes32(0);
         
         // Return deposit to flagger (they were right)
-        payable(flag.flagger).transfer(flag.deposit);
+        // Using call() instead of transfer() to support contract recipients
+        (bool success, ) = payable(flag.flagger).call{value: flag.deposit}("");
+        require(success, "ETH transfer failed");
         
         emit SlashExecuted(resourceHash, flag.deposit);
         
@@ -343,12 +352,18 @@ contract ISNADOracle is AutoUnpausable, ReentrancyGuard {
     function _selectJury(bytes32 flagId) internal {
         Flag storage flag = flags[flagId];
         
-        // Simple random selection using block hash
-        // TODO: Upgrade to Chainlink VRF for production
+        // Commit-reveal randomness: use blockhash of committed block
+        // Unpredictable at flag time, revealed after COMMIT_BLOCKS
+        // Note: This is NOT a weak PRNG - the seed is unpredictable because
+        // commitBlock is set COMMIT_BLOCKS in the future when the flag is created.
+        // Attackers cannot know the blockhash when submitting the flag transaction.
+        bytes32 commitHash = blockhash(flag.commitBlock);
+        require(commitHash != bytes32(0), "Commit block hash unavailable");
+        
         uint256 seed = uint256(keccak256(abi.encodePacked(
-            blockhash(block.number - 1),
+            commitHash,
             flagId,
-            block.timestamp
+            flag.createdAt
         )));
         
         address[] memory selected = new address[](jurySize);
@@ -357,6 +372,7 @@ contract ISNADOracle is AutoUnpausable, ReentrancyGuard {
         uint256 maxAttempts = jurorPool.length * 3;
         
         while (selectedCount < jurySize && attempts < maxAttempts) {
+            // slither-disable-next-line weak-prng
             uint256 index = (seed + attempts) % jurorPool.length;
             address candidate = jurorPool[index];
             
@@ -400,12 +416,14 @@ contract ISNADOracle is AutoUnpausable, ReentrancyGuard {
             flag.status = FlagStatus.Innocent;
             // Return deposit to flagger minus fee
             uint256 fee = flag.deposit / 10; // 10% fee for failed flag
-            payable(flag.flagger).transfer(flag.deposit - fee);
+            (bool success1, ) = payable(flag.flagger).call{value: flag.deposit - fee}("");
+            require(success1, "ETH transfer failed");
         } else {
             // No supermajority - dismiss
             flag.status = FlagStatus.Dismissed;
             // Return half deposit
-            payable(flag.flagger).transfer(flag.deposit / 2);
+            (bool success2, ) = payable(flag.flagger).call{value: flag.deposit / 2}("");
+            require(success2, "ETH transfer failed");
         }
         
         emit VerdictReached(

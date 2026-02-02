@@ -13,7 +13,8 @@ export interface NetworkConfig {
   explorer: string;
   contracts: {
     token: `0x${string}`;
-    registry: `0x${string}`;
+    registry: `0x${string}`;           // Current active registry (V2)
+    registryV1?: `0x${string}`;        // Legacy registry (for indexing)
     staking: `0x${string}`;
     oracle: `0x${string}`;
     rewardPool: `0x${string}`;
@@ -29,7 +30,8 @@ export const NETWORKS: Record<NetworkName, NetworkConfig> = {
     explorer: 'https://basescan.org',
     contracts: {
       token: '0x73F6d2BBef125b3A5F91Fe23c722f3C321f007E5',
-      registry: '0xb8264f3117b498ddF912EBF641B2301103D80f06',
+      registry: '0x7EA99470e22E5149F97FbDeB5807AEF54Deafc01',      // V2 (active)
+      registryV1: '0xb8264f3117b498ddF912EBF641B2301103D80f06',   // V1 (legacy, index only)
       staking: '0x916FFb3eB82616220b81b99f70c3B7679B9D62ca',
       oracle: '0xf02c3A5FED3c460628b5781E3c304Dd8206E85bd',
       rewardPool: '0x790b0766e9e2db7c59526b247851D16bB493a95B',
