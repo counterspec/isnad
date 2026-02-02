@@ -32,7 +32,7 @@ export default function AboutPage() {
           <p className="text-lg text-[var(--text-secondary)] mb-6">
             Yet there is no standardized way to assess trust before consumption:
           </p>
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
             <ProblemCard approach="Manual code review" limitation="Doesn't scale; most agents can't audit" />
             <ProblemCard approach="Central approval" limitation="Bottleneck; single point of failure" />
             <ProblemCard approach="Reputation scores" limitation="Gameable; new authors can't bootstrap" />
@@ -63,12 +63,12 @@ export default function AboutPage() {
             Unlike IPFS-based approaches that require pinning services and external infrastructure, 
             ISNAD inscribes resources directly on <strong className="text-[var(--text-primary)]">Base L2 calldata</strong>:
           </p>
-          <div className="grid grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-3 gap-3 sm:gap-6 mb-6 md:mb-8">
             <StatBlock value="~$0.01" label="per KB inscribed" />
             <StatBlock value="Forever" label="on-chain storage" />
             <StatBlock value="Zero" label="external dependencies" />
           </div>
-          <div className="card font-mono text-sm">
+          <div className="card font-mono text-xs sm:text-sm overflow-x-auto">
             <div className="text-[var(--text-tertiary)] mb-2">Inscription format:</div>
             <pre className="whitespace-pre-wrap text-[var(--text-secondary)]">{`ISNAD | v1 | type | flags | metadata | content
 
@@ -202,13 +202,13 @@ function HeroSection() {
   }, []);
 
   return (
-    <section className="relative h-[70vh] flex flex-col justify-center items-center text-center border-b-2 border-black bg-white overflow-hidden">
+    <section className="relative h-[50vh] sm:h-[60vh] md:h-[70vh] flex flex-col justify-center items-center text-center border-b-2 border-black bg-white overflow-hidden">
       <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none opacity-75" />
-      <div className="relative z-10">
-        <div className="text-[180px] font-bold leading-none" style={{ color: '#C5A059', fontFamily: 'serif' }}>
+      <div className="relative z-10 px-4">
+        <div className="text-[80px] sm:text-[120px] md:text-[150px] lg:text-[180px] font-bold leading-none" style={{ color: '#C5A059', fontFamily: 'serif' }}>
           إسناد
         </div>
-        <div className="font-mono text-sm tracking-[0.2em] uppercase mt-4 text-[var(--text-secondary)]">
+        <div className="font-mono text-xs sm:text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase mt-2 sm:mt-4 text-[var(--text-secondary)]">
           The Chain of Attribution
         </div>
       </div>
@@ -218,9 +218,9 @@ function HeroSection() {
 
 function EditorialSection({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <section className="py-12 border-b border-[var(--border-dim)]">
-      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-12">
-        <div className="text-sm font-bold uppercase tracking-widest text-[var(--text-primary)] md:sticky md:top-24 h-fit">
+    <section className="py-8 md:py-12 border-b border-[var(--border-dim)]">
+      <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr] xl:grid-cols-[280px_1fr] gap-6 lg:gap-12">
+        <div className="text-sm font-bold uppercase tracking-widest text-[var(--text-primary)] lg:sticky lg:top-24 h-fit">
           {label}
           <div className="w-10 h-0.5 bg-[#C5A059] mt-2" />
         </div>
@@ -256,8 +256,8 @@ function StepCard({ number, title, description }: { number: string; title: strin
 function StatBlock({ value, label }: { value: string; label: string }) {
   return (
     <div className="text-center">
-      <div className="text-2xl font-bold mb-1">{value}</div>
-      <div className="text-sm text-[var(--text-tertiary)]">{label}</div>
+      <div className="text-lg sm:text-2xl font-bold mb-1">{value}</div>
+      <div className="text-xs sm:text-sm text-[var(--text-tertiary)]">{label}</div>
     </div>
   );
 }

@@ -38,7 +38,13 @@ code, pre {
 .layout-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 16px;
+}
+
+@media (min-width: 640px) {
+  .layout-container {
+    padding: 0 24px;
+  }
 }
 
 /* Brutalist button styles */
@@ -46,13 +52,21 @@ code, pre {
   background: var(--border-highlight);
   color: white;
   border: 2px solid var(--border-highlight);
-  padding: 12px 24px;
+  padding: 14px 20px;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   cursor: pointer;
   transition: all 0.15s ease;
+  min-height: 44px;
+}
+
+@media (min-width: 640px) {
+  .btn-primary {
+    padding: 12px 24px;
+    font-size: 13px;
+  }
 }
 
 .btn-primary:hover {
@@ -64,13 +78,21 @@ code, pre {
   background: transparent;
   color: var(--border-highlight);
   border: 2px solid var(--border-highlight);
-  padding: 12px 24px;
+  padding: 14px 20px;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   cursor: pointer;
   transition: all 0.15s ease;
+  min-height: 44px;
+}
+
+@media (min-width: 640px) {
+  .btn-secondary {
+    padding: 12px 24px;
+    font-size: 13px;
+  }
 }
 
 .btn-secondary:hover {
@@ -82,7 +104,13 @@ code, pre {
 .card {
   background: var(--bg-surface);
   border: 2px solid var(--border-highlight);
-  padding: 24px;
+  padding: 16px;
+}
+
+@media (min-width: 640px) {
+  .card {
+    padding: 24px;
+  }
 }
 
 /* Trust tier badges */
