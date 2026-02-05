@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Markdown content for agent consumption
+// Markdown content for agent consumption (Accept: text/markdown)
 const markdownContent: Record<string, string> = {
   '/': `# $ISNAD — The Trust Layer for AI
 
@@ -30,30 +30,12 @@ ISNAD is a decentralized trust layer where auditors stake tokens to attest to re
 5. **If resource remains clean** → auditors earn yield
 6. **Consumers check trust scores** before using
 
-## Why it works
-
-- **Skin in the game:** Auditors risk real value. False attestations have consequences.
-- **Self-selecting expertise:** Only confident auditors stake. Market filters for competence.
-- **Permanently verifiable:** Resources and attestations live on-chain forever.
-- **Attack resistant:** Sybil attacks require capital. Collusion burns all colluders.
-
-## On-Chain Inscriptions
-
-Resources are inscribed directly on Base L2 calldata (~$0.01/KB):
-- Permanent storage, no IPFS pinning needed
-- Censorship-resistant, no external dependencies
-- Content-addressable via transaction hash
-
 ## Links
 
 - [Trust Checker](/check) — Check any resource's trust score
 - [Auditor Leaderboard](/leaderboard) — Top auditors by stake
 - [Documentation](/docs) — Full protocol docs
 - [About](/about) — Etymology and mission
-
----
-
-*The name comes from the Islamic scholarly tradition of isnad (إسناد) — the chain of transmission used to authenticate hadith.*
 `,
 
   '/check': `# ISNAD Trust Checker
@@ -64,136 +46,67 @@ Check any resource's trust score before use.
 
 Enter a resource inscription hash, URL, or package name to check its trust score and attestation history.
 
-## Supported Resource Types
-
-- SKILL — executable code packages
-- CONFIG — agent configurations
-- PROMPT — system prompts, personas
-- MEMORY — knowledge bases, context
-- MODEL — fine-tunes, adapters
-- API — endpoint attestations
-
 ## API Endpoint
 
 \`\`\`
 GET /api/resources/{hash}
 Accept: application/json
-
-Response:
-{
-  "type": "SKILL",
-  "name": "weather-skill",
-  "version": "1.2.0",
-  "inscription": "base:0x1234...",
-  "trustScore": 1250,
-  "trustTier": "VERIFIED",
-  "auditorCount": 3,
-  "attestations": [...]
-}
 \`\`\`
-
-## Trust Tiers
-
-| Tier | Stake Required | Auditors | Time Clean |
-|------|----------------|----------|------------|
-| UNVERIFIED | 0 | 0 | — |
-| REVIEWED | ≥100 $ISNAD | 1+ | — |
-| VERIFIED | ≥1,000 $ISNAD | 2+ | 14 days |
-| TRUSTED | ≥10,000 $ISNAD | 3+ | 60 days |
-| CERTIFIED | ≥50,000 $ISNAD | 5+ | 180 days |
-
----
-
-[Back to home](/) | [Documentation](/docs)
 `,
 
   '/leaderboard': `# ISNAD Auditor Leaderboard
 
 Top auditors ranked by total $ISNAD staked.
 
-## Metrics
-
-- **Total Staked** — Sum of all active stakes
-- **Attestations** — Number of resources attested
-- **Accuracy** — Percentage without burns
-- **Burns** — Number of times stake was slashed
-
 ## Becoming an Auditor
 
-Anyone can become an auditor by:
-1. Acquiring $ISNAD tokens
-2. Reviewing resources for security issues
-3. Staking tokens on resources you've verified as safe
-
-Higher stakes + longer lock periods = more yield.
-
-## Lock Periods & Yield
-
-| Lock Period | Base APY |
-|-------------|----------|
-| 30 days | 5% |
-| 90 days | 8% |
-| 180 days | 12% |
-
----
-
-[Back to home](/) | [Documentation](/docs)
+1. Acquire $ISNAD tokens
+2. Review resources for security issues
+3. Stake tokens on resources you've verified as safe
 `,
 
   '/docs': `# ISNAD Documentation
 
 ## Getting Started
 
-- [Introduction](/docs/intro) — What is $ISNAD and why it matters
 - [Quick Start](/docs/quickstart) — Check your first resource in 2 minutes
-- [Trust Tiers](/docs/tiers) — Understanding VERIFIED, AUDITED, UNVERIFIED
-- [Resource Types](/docs/types) — SKILL, CONFIG, PROMPT, MEMORY, MODEL, API
-
-## Inscriptions
-
-- [Inscription Format](/docs/inscriptions) — On-chain resource storage
-- [Chunked Inscriptions](/docs/chunks) — Large resource handling
-- [Indexer Protocol](/docs/indexer) — Running an indexer node
+- [API Reference](/docs/api) — Endpoints for trust lookups
+- [Trust Tiers](/docs/tiers) — Understanding trust levels
 
 ## For Auditors
 
 - [Becoming an Auditor](/docs/auditors) — Requirements and onboarding
-- [Staking Guide](/docs/staking) — How to stake, lock periods, and yield
-- [Detection & Slashing](/docs/slashing) — What triggers a burn
+- [Staking Guide](/docs/staking) — How to stake and earn
+- [Slashing](/docs/slashing) — What triggers a burn
 
 ## Technical
 
-- [Smart Contracts](/docs/contracts) — On-chain architecture (Base)
-- [API Reference](/docs/api) — Endpoints for trust lookups
+- [Smart Contracts](/docs/contracts) — On-chain architecture
 - [Integration Guide](/docs/integration) — Add trust checks to your agent
 
-## Resources
+## LLM-Ready Docs
 
-- [Whitepaper](https://github.com/counterspec/isnad/blob/main/WHITEPAPER.md)
-- [GitHub](https://github.com/counterspec/isnad)
+Add \`.md\` to any docs URL to get raw markdown:
+- /docs/quickstart → HTML
+- /docs/quickstart.md → Markdown
 
----
-
-[Back to home](/)
+Or use \`Accept: text/markdown\` header.
 `,
 
   '/about': `# About ISNAD
 
 ## The Name
 
-**Isnad** (إسناد) comes from the Islamic scholarly tradition — the chain of transmission used to authenticate hadith (sayings of the Prophet). A hadith is only as trustworthy as its chain of narrators.
+**Isnad** (إسناد) comes from the Islamic scholarly tradition — the chain of transmission used to authenticate hadith. A hadith is only as trustworthy as its chain of narrators.
 
 We apply this ancient wisdom to modern AI provenance. A resource is only as trustworthy as its chain of auditors.
 
 ## The Problem
 
-AI agents increasingly rely on shared resources—skills, configs, prompts, memory—from untrusted sources. A compromised resource can:
+AI agents increasingly rely on shared resources from untrusted sources. A compromised resource can:
 - Read API keys and credentials
 - Exfiltrate private data
 - Execute arbitrary commands
-- Manipulate agent behavior
-
-Current mitigations (manual review, central approval, reputation scores) don't scale.
 
 ## The Solution
 
@@ -202,45 +115,22 @@ $ISNAD introduces a decentralized trust layer:
 - **Attestations:** Auditors stake tokens to vouch for safety
 - **Slashing:** Malicious resources burn stakes
 - **Yield:** Clean resources earn rewards
-
-Market-priced trust signal without central authority.
-
-## On-Chain Everything
-
-Unlike IPFS-based approaches, ISNAD inscribes resources directly on Base L2 calldata:
-- ~$0.01 per KB to inscribe
-- Permanent, censorship-resistant storage
-- No pinning services, no external dependencies
-- Content and attestations together on-chain
-
-## Resource Types
-
-ISNAD supports attestation for any AI resource:
-- SKILL — code packages
-- CONFIG — agent settings
-- PROMPT — system prompts
-- MEMORY — knowledge bases
-- MODEL — fine-tunes
-- API — endpoint attestations
-
-Future types added via governance.
-
-## Links
-
-- [GitHub](https://github.com/counterspec/isnad)
-- [Twitter/X](https://twitter.com/isnad_protocol)
-
----
-
-[Back to home](/) | [Documentation](/docs)
 `,
 };
 
 export function middleware(request: NextRequest) {
   const acceptHeader = request.headers.get('accept') || '';
-  const pathname = request.nextUrl.pathname;
+  const { pathname } = request.nextUrl;
 
-  // Check if client wants markdown
+  // NEW: Handle /docs/*.md requests - serve raw markdown files
+  if (pathname.startsWith('/docs/') && pathname.endsWith('.md')) {
+    const slug = pathname.replace('/docs/', '').replace('.md', '');
+    const url = request.nextUrl.clone();
+    url.pathname = `/api/docs/${slug}.md`;
+    return NextResponse.rewrite(url);
+  }
+
+  // EXISTING: Check if client wants markdown via Accept header
   if (acceptHeader.includes('text/markdown')) {
     const content = markdownContent[pathname];
     
@@ -255,10 +145,9 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Continue to normal page rendering
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/', '/check', '/leaderboard', '/docs', '/about'],
+  matcher: ['/', '/check', '/leaderboard', '/docs', '/docs/:path*', '/about'],
 };
