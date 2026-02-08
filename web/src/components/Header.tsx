@@ -17,6 +17,7 @@ export function Header() {
     { href: '/about', label: 'About' },
     { href: '/check', label: 'Trust Checker' },
     { href: '/stake', label: 'Stake' },
+    { href: '/bounties', label: 'Bounties' },
     { href: '/leaderboard', label: 'Auditors' },
     { href: '/docs', label: 'Docs' },
   ];
