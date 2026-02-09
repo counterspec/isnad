@@ -77,8 +77,29 @@ class ISNADApi {
   }
 
   async getStats(): Promise<Stats> {
-    const data = await this.fetch<{ success: boolean; stats: Stats }>('/api/v1/stats');
-    return data.stats;
+    const response = await this.fetch<{ 
+      success: boolean; 
+      data: {
+        totalResources: number;
+        totalAttestations: number;
+        totalAuditors: number;
+        totalStaked: string;
+        resourcesByTier: Record<string, number>;
+        lastSyncedBlock: string;
+        lastSyncedAt: string;
+      };
+    }>('/api/v1/stats');
+    
+    // Map API response to frontend Stats interface
+    return {
+      resources: response.data.totalResources,
+      attestations: response.data.totalAttestations,
+      auditors: response.data.totalAuditors,
+      totalStaked: response.data.totalStaked,
+      tiers: response.data.resourcesByTier,
+      lastSyncedBlock: response.data.lastSyncedBlock,
+      lastSyncedAt: response.data.lastSyncedAt,
+    };
   }
 
   async getAuditors(limit: number = 10): Promise<Auditor[]> {
