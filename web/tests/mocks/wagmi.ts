@@ -1,14 +1,14 @@
 import { vi } from 'vitest';
 
 // Mock wagmi hooks
-export const mockUseAccount = vi.fn(() => ({
+export const mockUseAccount = vi.fn((): any => ({
   address: undefined as `0x${string}` | undefined,
   isConnected: false,
   isConnecting: false,
   isDisconnected: true,
   connector: undefined,
   chain: undefined,
-  status: 'disconnected' as const,
+  status: 'disconnected',
 }));
 
 export const mockUseConnect = vi.fn(() => ({
@@ -28,7 +28,7 @@ export const mockUseDisconnect = vi.fn(() => ({
   isPending: false,
 }));
 
-export const mockUseReadContract = vi.fn(() => ({
+export const mockUseReadContract = vi.fn((): any => ({
   data: undefined,
   isLoading: false,
   isError: false,
