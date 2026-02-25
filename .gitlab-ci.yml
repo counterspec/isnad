@@ -1,0 +1,42 @@
+# GitLab CI/CD Configuration for Isnad
+# This template provides security scanning and quality checks
+
+stages:
+  - test
+  - security
+  - deploy
+
+# Run tests
+unit_tests:
+  stage: test
+  image: node:18
+  script:
+    - npm ci
+    - npm run test
+  only:
+    - merge_requests
+    - main
+
+# Security scanning
+security_scan:
+  stage: security
+  image: returntocorp/semgrep
+  script:
+    - semgrep --config=auto --json --output=report.json .
+  artifacts:
+    reports:
+      sast: report.json
+    paths:
+      - report.json
+  only:
+    - merge_requests
+    - main
+
+# Custom rules check
+custom_rules_check:
+  stage: security
+  script:
+    - echo "Running custom Isnad rules..."
+    - isnad scan --config .isnad.yml
+  only:
+    - merge_requests
