@@ -2,6 +2,8 @@
 
 Detection oracle for the ISNAD trust protocol. Scans AI resources (skills, prompts, configs) for malicious patterns and submits flags to the on-chain oracle.
 
+[简体中文版本](./README.zh-CN.md)
+
 ## Installation
 
 ```bash

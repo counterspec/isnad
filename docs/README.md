@@ -4,6 +4,8 @@ ISNAD (إسناد) is a decentralized trust layer for AI resources. This documen
 
 ## Quick Links
 
+- **[简体中文文档总览](./README.zh-CN.md)** — 中文版入门与目录
+
 - **[What is ISNAD?](./what-is-isnad.md)** — Overview and core concepts
 - **[For Auditors](./auditors.md)** — How to stake and earn yield
 - **[Staking Guide](./staking.md)** — Step-by-step staking instructions
