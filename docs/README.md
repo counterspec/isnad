@@ -1,5 +1,7 @@
 # ISNAD Documentation
 
+[中文文档入口](./README.zh-CN.md)
+
 ISNAD (إسناد) is a decentralized trust layer for AI resources. This documentation covers everything you need to know about using and contributing to the protocol.
 
 ## Quick Links

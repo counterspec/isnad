@@ -1,5 +1,7 @@
 # ISNAD Scanner
 
+[中文文档](./README.zh-CN.md)
+
 Detection oracle for the ISNAD trust protocol. Scans AI resources (skills, prompts, configs) for malicious patterns and submits flags to the on-chain oracle.
 
 ## Installation
