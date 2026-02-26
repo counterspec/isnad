@@ -1,0 +1,82 @@
+{
+  "name": "isnad-vscode",
+  "displayName": "ISNAD Security Scanner",
+  "description": "Real-time security scanning for AI agent code with inline warnings",
+  "version": "0.1.0",
+  "publisher": "isnad",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "security",
+    "scanner",
+    "ai",
+    "agents",
+    "isnad"
+  ],
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:python"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "ISNAD Scanner",
+      "properties": {
+        "isnad.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable ISNAD security scanning"
+        },
+        "isnad.sensitivity": {
+          "type": "string",
+          "enum": ["low", "medium", "high"],
+          "default": "medium",
+          "description": "Scan sensitivity level"
+        },
+        "isnad.scanOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Scan files on save"
+        },
+        "isnad.scanOnType": {
+          "type": "boolean",
+          "default": false,
+          "description": "Scan files while typing (may impact performance)"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "isnad.scanFile",
+        "title": "ISNAD: Scan Current File"
+      },
+      {
+        "command": "isnad.scanWorkspace",
+        "title": "ISNAD: Scan Workspace"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {}
+}
