@@ -5,9 +5,11 @@ ISNAD (إسناد) 是一个去中心化的 AI 资源信任层。本文档涵盖
 ## 快速链接
 
 - **[什么是 ISNAD？](./what-is-isnad.md)** — 概述和核心概念
+- **[如何认证 Skill](./how-to-attest.md)** — 快速入门指南
 - **[审计者指南](./auditors.md)** — 如何质押和赚取收益
 - **[质押指南](./staking.md)** — 分步质押说明
 - **[陪审团系统](./jury.md)** — 惩罚和申诉机制
+- **[Scanner CLI](./scanner.md)** — 恶意代码扫描工具
 - **[API 参考](./api.md)** — REST API 文档
 - **[智能合约](./contracts.md)** — 链上架构
 
