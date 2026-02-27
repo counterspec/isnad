@@ -71,6 +71,46 @@ export const DANGEROUS_PATTERNS: Pattern[] = [
     pattern: /btoa\s*\(|Buffer\.from\(.*\)\.toString\s*\(\s*['"`]base64['"`]\s*\)/gi,
     category: 'exfiltration'
   },
+  {
+    id: 'EXFIL_BASE64_URL_DECODE',
+    name: 'Base64-decoded URL',
+    description: 'Decoding base64 payloads that look like URL strings',
+    severity: 'high',
+    pattern: /(atob|Buffer\.from)\s*\(\s*['"`]aHR0[0-9A-Za-z+/=]{12,}['"`](\s*,\s*['"`]base64['"`])?\s*\)/gi,
+    category: 'exfiltration'
+  },
+  {
+    id: 'EXFIL_HEX_URL_LITERAL',
+    name: 'Hex-escaped URL Literal',
+    description: 'Hex-escaped URL strings passed to network APIs',
+    severity: 'high',
+    pattern: /(fetch|axios\.(get|post|put|patch|delete)|requests\.(get|post|put|delete)|urllib3\.[A-Za-z_]+\.request|https?\.request)\s*\([^)]*\\x68\\x74\\x74\\x70/gi,
+    category: 'exfiltration'
+  },
+  {
+    id: 'EXFIL_CHARCODE_URL',
+    name: 'CharCode URL Construction',
+    description: 'URL components assembled from character codes',
+    severity: 'high',
+    pattern: /String\.fromCharCode\s*\([^)]{15,}\)/gi,
+    category: 'exfiltration'
+  },
+  {
+    id: 'OBFUSC_REVERSED_STRING',
+    name: 'Reversed String Obfuscation',
+    description: 'Suspicious reverse-join string decoding for hidden URLs',
+    severity: 'high',
+    pattern: /\.split\(\s*['"`]['"`]\s*\)\s*\.reverse\(\)\s*\.join\(\s*['"`]['"`]\s*\)/gi,
+    category: 'obfuscation'
+  },
+  {
+    id: 'OBFUSC_URL_CONCAT',
+    name: 'Concatenated URL Obfuscation',
+    description: 'Suspicious multi-part URL assembly by string concatenation',
+    severity: 'high',
+    pattern: /['"`]ht['"`]\s*\+\s*['"`]tps?:\/\/['"`]|['"`]https?:\/\/['"`]\s*\+\s*['"`][^'"`]{2,}['"`]/gi,
+    category: 'obfuscation'
+  },
 
   // === HIGH: Credential access ===
   {
@@ -86,7 +126,7 @@ export const DANGEROUS_PATTERNS: Pattern[] = [
     name: 'Sensitive File Read',
     description: 'Reading potentially sensitive files',
     severity: 'high',
-    pattern: /(\.env|\.ssh|\.aws|credentials|\.netrc|\.npmrc|\.pypirc|id_rsa|id_ed25519)/gi,
+    pattern: /(?:^|[\\/\s'"`])(?:\.env(?:\.[\w.-]+)?|\.ssh|\.aws|credentials|\.netrc|\.npmrc|\.pypirc|id_rsa|id_ed25519)(?:$|[\\/\s'"`])/gi,
     category: 'credential_access'
   },
   {
@@ -192,9 +232,8 @@ export const DANGEROUS_PATTERNS: Pattern[] = [
  */
 export const ALLOWLIST_PATTERNS = [
   // Common legitimate uses
-  /console\.(log|error|warn|info)/gi,
-  /JSON\.(parse|stringify)/gi,
-  /Math\.(random|floor|ceil)/gi,
+  /console\.(log|error|warn|info)/i,
+  /Math\.(random|floor|ceil)/i,
 ];
 
 /**

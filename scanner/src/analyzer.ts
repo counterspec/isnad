@@ -2,7 +2,7 @@
  * ISNAD Scanner - Static Analysis Engine
  */
 
-import { DANGEROUS_PATTERNS, ALLOWLIST_PATTERNS, SAFE_DOMAINS, type Pattern } from './patterns.js';
+import { DANGEROUS_PATTERNS, ALLOWLIST_PATTERNS, SAFE_DOMAINS } from './patterns.js';
 import { createHash } from 'crypto';
 
 export interface Finding {
@@ -48,6 +48,86 @@ const RISK_THRESHOLDS = {
   low: 10
 };
 
+const OBFUSCATED_ENV_SIGNAL_IDS = new Set([
+  'EXFIL_BASE64_SEND',
+  'EXFIL_BASE64_URL_DECODE',
+  'EXFIL_HEX_URL_LITERAL',
+  'EXFIL_CHARCODE_URL',
+  'OBFUSC_HEX_STRING',
+  'OBFUSC_CHAR_CODE',
+  'OBFUSC_REVERSED_STRING',
+  'OBFUSC_URL_CONCAT'
+]);
+
+const ENV_HARVEST_PATTERNS = [
+  /process\.env\b/i,
+  /os\.environ\b/i,
+  /os\.getenv\s*\(/i,
+  /System\.getenv\s*\(/i
+];
+
+const NETWORK_TRANSMIT_PATTERN =
+  /\b(fetch\s*\(|axios\.(get|post|put|patch|delete)|requests\.(get|post|put|patch|delete)|urllib3\.[A-Za-z_]+\.request|https?\.request\s*\()/i;
+
+const OBFUSCATION_HINT_PATTERN =
+  /(base64\.b64encode|Buffer\.from\(.*base64|atob\s*\(|\\x[0-9a-fA-F]{2}|String\.fromCharCode|\.split\(\s*['"`]['"`]\s*\)\.reverse\(\)\.join\(\s*['"`]['"`]\s*\)|\[\s*::\s*-1\s*\])/i;
+
+function isAllowlistedLine(contextLine: string): boolean {
+  return ALLOWLIST_PATTERNS.some(allowPattern => {
+    const flags = allowPattern.flags.replaceAll('g', '');
+    return new RegExp(allowPattern.source, flags).test(contextLine);
+  });
+}
+
+function addObfuscatedEnvTransmissionFinding(content: string, lines: string[], findings: Finding[]): void {
+  const hasEnvHarvest = ENV_HARVEST_PATTERNS.some(pattern => pattern.test(content));
+  if (!hasEnvHarvest) {
+    return;
+  }
+
+  const hasNetworkTransmit = NETWORK_TRANSMIT_PATTERN.test(content);
+  if (!hasNetworkTransmit) {
+    return;
+  }
+
+  const hasObfuscatedSignal =
+    findings.some(finding => OBFUSCATED_ENV_SIGNAL_IDS.has(finding.patternId)) ||
+    OBFUSCATION_HINT_PATTERN.test(content);
+
+  if (!hasObfuscatedSignal) {
+    return;
+  }
+
+  if (findings.some(finding => finding.patternId === 'EXFIL_ENV_OBFUSCATED_TRANSMISSION')) {
+    return;
+  }
+
+  const line = findFirstLine(lines, ENV_HARVEST_PATTERNS);
+  const context = lines[line - 1] || '';
+
+  findings.push({
+    patternId: 'EXFIL_ENV_OBFUSCATED_TRANSMISSION',
+    name: 'Environment Harvest + Obfuscated Transmission',
+    description: 'Environment variable harvesting combined with obfuscated network transmission',
+    severity: 'critical',
+    category: 'exfiltration',
+    line,
+    column: 1,
+    match: 'env_harvest_obfuscated_transmission',
+    context: context.trim().substring(0, 200)
+  });
+}
+
+function findFirstLine(lines: string[], patterns: RegExp[]): number {
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
+    if (patterns.some(pattern => pattern.test(line))) {
+      return index + 1;
+    }
+  }
+  return 1;
+}
+
 /**
  * Analyze content for security issues
  */
@@ -72,9 +152,7 @@ export function analyzeContent(content: string, resourceHash?: string): Analysis
       const contextLine = lines[lineNumber - 1] || '';
 
       // Check if this is in an allowlisted context
-      const isAllowlisted = ALLOWLIST_PATTERNS.some(allowPattern => 
-        allowPattern.test(contextLine)
-      );
+      const isAllowlisted = isAllowlistedLine(contextLine);
 
       if (!isAllowlisted) {
         findings.push({
@@ -91,6 +169,8 @@ export function analyzeContent(content: string, resourceHash?: string): Analysis
       }
     }
   }
+
+  addObfuscatedEnvTransmissionFinding(content, lines, findings);
 
   // Calculate risk score
   const summary = {
