@@ -86,7 +86,7 @@ export const DANGEROUS_PATTERNS: Pattern[] = [
     name: 'Sensitive File Read',
     description: 'Reading potentially sensitive files',
     severity: 'high',
-    pattern: /(\.env|\.ssh|\.aws|credentials|\.netrc|\.npmrc|\.pypirc|id_rsa|id_ed25519)/gi,
+    pattern: /(?:^|[\\/\s'"`])(?:\.env(?:\.[\w.-]+)?|\.ssh|\.aws|credentials|\.netrc|\.npmrc|\.pypirc|id_rsa|id_ed25519)(?:$|[\\/\s'"`])/gi,
     category: 'credential_access'
   },
   {
@@ -192,9 +192,8 @@ export const DANGEROUS_PATTERNS: Pattern[] = [
  */
 export const ALLOWLIST_PATTERNS = [
   // Common legitimate uses
-  /console\.(log|error|warn|info)/gi,
-  /JSON\.(parse|stringify)/gi,
-  /Math\.(random|floor|ceil)/gi,
+  /console\.(log|error|warn|info)/i,
+  /Math\.(random|floor|ceil)/i,
 ];
 
 /**

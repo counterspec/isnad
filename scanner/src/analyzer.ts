@@ -48,6 +48,54 @@ const RISK_THRESHOLDS = {
   low: 10
 };
 
+const HTTP_CLIENT_HINT = /\b(axios|node-fetch|fetch|requests\.(get|post|put|patch|delete|request)|urllib3\.)/i;
+const SUSPICIOUS_HTTP_HINT =
+  /(process\.env|document\.cookie|localStorage|sessionStorage|webhook|hooks\.slack\.com|discord\.com\/api\/webhooks|requestbin|pipedream|ngrok\.io|btoa\s*\(|toString\s*\(\s*['"`]base64)/i;
+const API_PATH_HINT = /\/(api|v\d+|health|status|repos|users|simple|graphql)\b/i;
+
+function inAllowlistedContext(
+  pattern: Pattern,
+  lines: string[],
+  lineNumber: number,
+  contextLine: string
+): boolean {
+  const basicAllowlisted = ALLOWLIST_PATTERNS.some(allowPattern => {
+    const flags = allowPattern.flags.replaceAll('g', '');
+    return new RegExp(allowPattern.source, flags).test(contextLine);
+  });
+
+  if (basicAllowlisted) {
+    return true;
+  }
+
+  if (pattern.id === 'EXFIL_FETCH_DYNAMIC') {
+    return isLikelyLegitimateHttpClientUsage(lines, lineNumber);
+  }
+
+  return false;
+}
+
+function isLikelyLegitimateHttpClientUsage(lines: string[], lineNumber: number): boolean {
+  const start = Math.max(0, lineNumber - 3);
+  const end = Math.min(lines.length, lineNumber + 2);
+  const contextWindow = lines.slice(start, end).join('\n');
+
+  if (!HTTP_CLIENT_HINT.test(contextWindow)) {
+    return false;
+  }
+
+  if (SUSPICIOUS_HTTP_HINT.test(contextWindow)) {
+    return false;
+  }
+
+  const hasSafeDomain = SAFE_DOMAINS.some(domain =>
+    contextWindow.toLowerCase().includes(domain.toLowerCase())
+  );
+  const hasApiPathHint = API_PATH_HINT.test(contextWindow);
+
+  return hasSafeDomain || hasApiPathHint;
+}
+
 /**
  * Analyze content for security issues
  */
@@ -72,9 +120,7 @@ export function analyzeContent(content: string, resourceHash?: string): Analysis
       const contextLine = lines[lineNumber - 1] || '';
 
       // Check if this is in an allowlisted context
-      const isAllowlisted = ALLOWLIST_PATTERNS.some(allowPattern => 
-        allowPattern.test(contextLine)
-      );
+      const isAllowlisted = inAllowlistedContext(pattern, lines, lineNumber, contextLine);
 
       if (!isAllowlisted) {
         findings.push({
