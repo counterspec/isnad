@@ -1,0 +1,125 @@
+{
+  "name": "isnad-security",
+  "displayName": "ISNAD Security Scanner",
+  "description": "VS Code extension for ISNAD security scanning with inline warnings",
+  "version": "1.0.0",
+  "publisher": "isnad",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Security",
+    "Linters"
+  ],
+  "keywords": [
+    "security",
+    "scanner",
+    "isnad",
+    "supply-chain",
+    "malware"
+  ],
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:python",
+    "onLanguage:json"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "isnad.scan",
+        "title": "ISNAD: Scan Current File",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "isnad.scanWorkspace",
+        "title": "ISNAD: Scan Workspace"
+      },
+      {
+        "command": "isnad.checkAttestation",
+        "title": "ISNAD: Check Attestation Status"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "isnad.scan",
+          "group": "2_isnad@1"
+        },
+        {
+          "command": "isnad.checkAttestation",
+          "group": "2_isnad@2"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "isnad.scanWorkspace",
+          "group": "2_isnad"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "ISNAD Security",
+      "properties": {
+        "isnad.sensitivity": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "default": "medium",
+          "description": "Scan sensitivity level"
+        },
+        "isnad.autoScan": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically scan files on open"
+        },
+        "isnad.showInlineWarnings": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show inline security warnings"
+        }
+      }
+    },
+    "diagnostics": {
+      "languages": [
+        {
+          "language": "javascript",
+          "scheme": "file"
+        },
+        {
+          "language": "typescript",
+          "scheme": "file"
+        },
+        {
+          "language": "python",
+          "scheme": "file"
+        },
+        {
+          "language": "json",
+          "scheme": "file"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^18.x",
+    "@types/vscode": "^1.74.0",
+    "@typescript-eslint/eslint-plugin": "^5.x",
+    "@typescript-eslint/parser": "^5.x",
+    "eslint": "^8.x",
+    "typescript": "^4.x"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}
