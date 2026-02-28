@@ -1,0 +1,38 @@
+# GitLab CI Template for ISNAD Scan
+image: node:18
+
+variables:
+  ISNAD_TARGET: "."
+  ISNAD_OUTPUT_FORMAT: "sarif"
+  ISNAD_FAIL_ON_FINDINGS: "true"
+
+stages:
+  - security
+
+isnad-scan:
+  stage: security
+  script:
+    - npm install -g @isnad/cli
+    - isnad scan $ISNAD_TARGET --format $ISNAD_OUTPUT_FORMAT --output isnad-results.sarif
+  artifacts:
+    reports:
+      sast: isnad-results.sarif
+    paths:
+      - isnad-results.sarif
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  allow_failure: true
+
+# Optional: Upload to ISNAD dashboard
+isnad-upload:
+  stage: security
+  script:
+    - npm install -g @isnad/cli
+    - isnad upload isnad-results.sarif --api-key $ISNAD_API_KEY
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  needs:
+    - isnad-scan
+  when: on_success
