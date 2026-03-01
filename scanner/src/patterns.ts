@@ -71,6 +71,30 @@ export const DANGEROUS_PATTERNS: Pattern[] = [
     pattern: /btoa\s*\(|Buffer\.from\(.*\)\.toString\s*\(\s*['"`]base64['"`]\s*\)/gi,
     category: 'exfiltration'
   },
+  {
+    id: 'EXFIL_BASE64_ENCODED',
+    name: 'Base64-encoded Data Exfiltration',
+    description: 'Sending base64-encoded data (potential credential exfil)',
+    severity: 'high',
+    pattern: /(btoa|Buffer\.from\([^)]*\)\.toString\s*\(\s*['"`]base64['"`]\s*\)).*(fetch|XMLHttpRequest|send|http\.request)/gi,
+    category: 'exfiltration'
+  },
+  {
+    id: 'EXFIL_HEX_ENCODED',
+    name: 'Hex-encoded Data Exfiltration',
+    description: 'Sending hex-encoded data (potential credential exfil)',
+    severity: 'high',
+    pattern: /Buffer\.from\([^)]*,\s*['"`]hex['"`]\s*\).*(fetch|XMLHttpRequest|send|http\.request)/gi,
+    category: 'exfiltration'
+  },
+  {
+    id: 'EXFIL_CHARCODE_OBFUSC',
+    name: 'CharCode Obfuscation for Exfiltration',
+    description: 'Building strings via String.fromCharCode to exfiltrate data',
+    severity: 'high',
+    pattern: /String\.fromCharCode\s*\([^)]{15,}\).*(fetch|XMLHttpRequest|send)/gi,
+    category: 'exfiltration'
+  },
 
   // === HIGH: Credential access ===
   {
@@ -79,6 +103,22 @@ export const DANGEROUS_PATTERNS: Pattern[] = [
     description: 'Accessing environment variables (may contain secrets)',
     severity: 'medium',
     pattern: /process\.env\[|process\.env\./gi,
+    category: 'credential_access'
+  },
+  {
+    id: 'CRED_ENV_ENCODED_SEND',
+    name: 'Encoded Env Variable Exfiltration',
+    description: 'Sending environment variables in encoded form (base64/hex)',
+    severity: 'critical',
+    pattern: /(btoa|Buffer\.from\([^)]*\)\.toString\s*\(\s*['"`]base64['"`]\s*\)).*process\.env/gi,
+    category: 'credential_access'
+  },
+  {
+    id: 'CRED_CHARCODE_BUILD',
+    name: 'CharCode-built Credential Exfiltration',
+    description: 'Building credential payload via String.fromCharCode then sending',
+    severity: 'critical',
+    pattern: /process\.env.*String\.fromCharCode/gi,
     category: 'credential_access'
   },
   {
@@ -165,6 +205,24 @@ export const DANGEROUS_PATTERNS: Pattern[] = [
     description: 'Heavy use of unicode escapes',
     severity: 'low',
     pattern: /\\u[0-9a-fA-F]{4}(\\u[0-9a-fA-F]{4}){5,}/g,
+    category: 'obfuscation'
+  },
+
+  // === MEDIUM: Obfuscation techniques ===
+  {
+    id: 'OBFUSC_STRING_REVERSAL',
+    name: 'String Reversal Obfuscation',
+    description: 'Reversing strings to hide malicious payloads',
+    severity: 'medium',
+    pattern: /\.split\s*\(\s*['"`][]['"`]\s*\)\s*\.?\s*reverse\s*\(\s*\)\s*\.?\s*join\s*\(\s*['"`][]['"`]\s*\)/gi,
+    category: 'obfuscation'
+  },
+  {
+    id: 'OBFUSC_CONCATENATION',
+    name: 'Suspicious String Concatenation',
+    description: 'Building strings via concatenation, possibly with env vars',
+    severity: 'medium',
+    pattern: /(process\.env\w*)\s*[+]\s*['"`][^'`"]+['"`]\s*[+]/gi,
     category: 'obfuscation'
   },
 
