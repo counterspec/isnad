@@ -1,3 +1,5 @@
+**English** | [中文](README_CN.md)
+
 # $ISNAD
 
 **The Trust Layer for AI Agents**
