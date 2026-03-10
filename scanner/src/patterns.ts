@@ -209,3 +209,45 @@ export const SAFE_DOMAINS = [
   'registry.npmjs.org',
   'pypi.org',
 ];
+
+  // === HIGH: WebSocket-based attacks (Issue #3) ===
+  {
+    id: 'WS_SUSPICIOUS_ENDPOINT',
+    name: 'WebSocket to Suspicious Endpoint',
+    description: 'WebSocket connection to suspicious or dynamic endpoints',
+    severity: 'high',
+    pattern: /new\s+WebSocket\s*\(\s*[^'"`\s]|new\s+WebSocket\s*\(\s*['"`](ws:\/\/|wss:\/\/)[^'"`]*(ngrok|pipedream|requestbin|webhook|\.onion|localhost:\d{4,5})/gi,
+    category: 'websocket'
+  },
+  {
+    id: 'WS_DATA_EXFIL',
+    name: 'WebSocket Data Exfiltration',
+    description: 'Sending sensitive data over WebSocket',
+    severity: 'high',
+    pattern: /\.send\s*\(\s*(JSON\.stringify\s*\(\s*process\.env|Buffer\.from|btoa\s*\(|\.toString\s*\(\s*['"`]base64['"`]\s*\))/gi,
+    category: 'websocket'
+  },
+  {
+    id: 'WS_REVERSE_SHELL',
+    name: 'WebSocket Reverse Shell',
+    description: 'Potential reverse shell via WebSocket',
+    severity: 'critical',
+    pattern: /WebSocket.*on\s*\(\s*['"`]message['"`].*\b(exec|spawn|execSync|child_process)\b|child_process.*WebSocket/gi,
+    category: 'websocket'
+  },
+  {
+    id: 'WS_C2_PATTERN',
+    name: 'WebSocket C2 Communication',
+    description: 'Command and control patterns over WebSocket',
+    severity: 'critical',
+    pattern: /WebSocket.*on\s*\(\s*['"`]message['"`].*\b(eval|Function)\s*\(|\.onmessage\s*=.*\b(eval|Function)\s*\(/gi,
+    category: 'websocket'
+  },
+  {
+    id: 'WS_BIDIRECTIONAL_EXFIL',
+    name: 'Bidirectional WebSocket Exfiltration',
+    description: 'Reading files/env and sending via WebSocket',
+    severity: 'high',
+    pattern: /(readFileSync|readFile|process\.env)[\s\S]{0,100}\.send\s*\(|\.send\s*\([\s\S]{0,100}(readFileSync|readFile|process\.env)/gi,
+    category: 'websocket'
+  },
