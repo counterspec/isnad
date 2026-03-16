@@ -1,0 +1,162 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# ISNAD Scanner Rule Definition
+# Rule ID  : ISNAD-WS-001
+# Name     : Malicious WebSocket Handler
+# Track    : Detection
+# Severity : CRITICAL
+# ─────────────────────────────────────────────────────────────────────────────
+
+id: ISNAD-WS-001
+name: Malicious WebSocket Handler
+version: "1.0.0"
+severity: CRITICAL
+confidence: HIGH
+description: |
+  Detects supply-chain attack patterns that abuse WebSocket connections
+  for Command-and-Control (C2) communication, bidirectional data
+  exfiltration, and reverse shell establishment. These patterns are
+  harder to detect than simple HTTP exfiltration because:
+    - WebSocket traffic blends with legitimate app traffic
+    - Connections persist without repeated DNS lookups
+    - Bidirectional communication enables interactive control
+
+references:
+  - https://attack.mitre.org/techniques/T1071/   # Application Layer Protocol
+  - https://attack.mitre.org/techniques/T1041/   # Exfiltration Over C2 Channel
+  - https://attack.mitre.org/techniques/T1059/   # Command & Scripting Interpreter
+  - https://attack.mitre.org/techniques/T1095/   # Non-Application Layer Protocol
+
+tags:
+  - websocket
+  - c2
+  - command-and-control
+  - exfiltration
+  - reverse-shell
+  - supply-chain
+  - persistence
+
+# ── Pattern Groups ────────────────────────────────────────────────────────────
+# Each group contributes independently to the risk score.
+# A file exceeding the threshold score is flagged as MALICIOUS.
+
+threshold_score: 40
+
+pattern_groups:
+
+  - id: suspicious_ws_endpoint
+    weight: 40
+    description: |
+      WebSocket connection to a suspicious or obfuscated remote endpoint.
+      Legitimate packages connect to well-known, static, same-origin endpoints.
+      Raw IPs, tunnel services, and env-var-hidden URLs are strong indicators.
+    patterns:
+      - id: raw_ip_endpoint
+        description: WebSocket connecting to a raw IP address
+        regex: 'new\s+WebSocket\s*\(\s*[`''"](wss?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
+        example: "new WebSocket('ws://10.0.0.1:4444/cmd')"
+
+      - id: atob_encoded_endpoint
+        description: WebSocket URL hidden behind Base64 decoding
+        regex: 'new\s+WebSocket\s*\(\s*(?:atob|Buffer\.from|decodeURIComponent|unescape)\s*\('
+        example: "new WebSocket(atob('d3M6Ly9tYWxpY2lvdXM='))"
+
+      - id: env_var_endpoint
+        description: WebSocket endpoint stored in environment variable (hides C2 address)
+        regex: 'new\s+WebSocket\s*\(\s*process\.env\.[A-Z_]+'
+        example: "new WebSocket(process.env.C2_SERVER)"
+
+      - id: tunnel_service_endpoint
+        description: WebSocket connecting through known tunnel services (ngrok, serveo, etc.)
+        regex: 'new\s+WebSocket\s*\(\s*[`''"](wss?:\/\/[a-z0-9\-]+\.(?:ngrok(?:\.io|free\.app)|serveo\.net|localhost\.run|loca\.lt))'
+        example: "new WebSocket('wss://abc123.ngrok.io/shell')"
+
+  - id: data_exfiltration
+    weight: 35
+    description: |
+      Sensitive data sent via WebSocket .send() call. Includes environment
+      variables, file system content, credential files, and system information.
+    patterns:
+      - id: env_exfiltration
+        description: Entire process.env sent over WebSocket
+        regex: '\.send\s*\(\s*JSON\.stringify\s*\(\s*process\.env\b'
+        example: "ws.send(JSON.stringify(process.env))"
+
+      - id: file_read_exfiltration
+        description: File contents read and sent over WebSocket
+        regex: '\.send\s*\(\s*(?:fs|require\s*\(\s*[''"]fs[''"]\s*\))\.read(?:File|FileSync)\s*\('
+        example: "ws.send(fs.readFileSync('/etc/passwd'))"
+
+      - id: credential_file_exfiltration
+        description: Known credential file paths referenced in WebSocket send
+        regex: '\.send\s*\(.*(?:\.ssh|id_rsa|\.env|credentials|\.aws|\.npmrc|\.netrc)'
+        example: "ws.send(fs.readFileSync('~/.ssh/id_rsa'))"
+
+      - id: system_info_exfiltration
+        description: System reconnaissance data sent via WebSocket
+        regex: '\.send\s*\(.*(?:os\.userInfo|os\.homedir|process\.cwd|__dirname)'
+        example: "ws.send(os.userInfo())"
+
+  - id: reverse_shell
+    weight: 45
+    description: |
+      WebSocket used to create an interactive reverse shell. This involves
+      spawning a child process (shell, cmd.exe, PowerShell) and bridging
+      its stdin/stdout to the WebSocket channel.
+    patterns:
+      - id: shell_spawn
+        description: Shell process spawned with known shell paths
+        regex: 'spawn\s*\(\s*[''"](?:\/bin\/(?:ba)?sh|cmd(?:\.exe)?|powershell(?:\.exe)?)[''"]'
+        example: "spawn('/bin/bash', ['-i'])"
+
+      - id: exec_output_to_ws
+        description: exec() or spawn() output piped into WebSocket send
+        regex: '(?:exec|execSync|spawn|spawnSync)\s*\([^)]*\)[^;]*\.send\s*\('
+        example: "exec(cmd, (e, out) => ws.send(out))"
+
+      - id: message_triggers_exec
+        description: WebSocket message handler that calls exec/eval (incoming RCE)
+        regex: '\.on\s*\(\s*[''"]message[''"]\s*,\s*(?:function|\(.*\)\s*=>)\s*\{[^}]*(?:exec|eval|spawn|Function)\s*\('
+        example: "ws.on('message', (cmd) => exec(cmd, cb))"
+
+      - id: pty_reverse_shell
+        description: PTY (pseudo-terminal) allocated and bridged to WebSocket
+        regex: 'require\s*\(\s*[''"](?:node-pty|pty\.js|xterm)[''"]'
+        example: "const pty = require('node-pty')"
+
+  - id: c2_beacon
+    weight: 30
+    description: |
+      Periodic heartbeat or auto-reconnect patterns indicating a persistent
+      C2 channel. Legitimate WebSocket clients don't typically implement
+      aggressive reconnection with data sends.
+    patterns:
+      - id: interval_beacon
+        description: setInterval used to periodically send data via WebSocket
+        regex: 'setInterval\s*\(\s*(?:function|\(.*\)\s*=>)\s*\{[^}]*\.send\s*\('
+        example: "setInterval(() => { ws.send(JSON.stringify({alive:true})); }, 30000)"
+
+      - id: reconnect_on_close
+        description: WebSocket 'close' event triggers reconnection loop
+        regex: '\.on\s*\(\s*[''"]close[''"]\s*,\s*(?:function|\(.*\)\s*=>)\s*\{[^}]*new\s+WebSocket\s*\('
+        example: "ws.on('close', () => { setTimeout(connect, 5000); })"
+
+  - id: obfuscation_with_ws
+    weight: 25
+    description: |
+      Code obfuscation techniques applied to WebSocket-related code. Clean
+      packages have no reason to obfuscate their WebSocket logic.
+    patterns:
+      - id: hex_encoded_ws
+        description: Hex-encoded strings adjacent to WebSocket usage
+        regex: '(?:\\x[0-9a-f]{2}){4,}[^;]*WebSocket'
+        example: "new WebSocket(\\x77\\x73\\x3a)"
+
+      - id: char_code_ws_url
+        description: String.fromCharCode used to construct WebSocket URL
+        regex: 'String\.fromCharCode\s*\([^)]+\)[^;]*WebSocket'
+        example: "new WebSocket(String.fromCharCode(119,115,58))"
+
+      - id: eval_websocket
+        description: eval() used to execute WebSocket connection code
+        regex: 'eval\s*\([^)]*WebSocket'
+        example: "eval('new WebSocket(...)')"
