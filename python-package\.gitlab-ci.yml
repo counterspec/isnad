@@ -1,0 +1,37 @@
+# ============================================================
+# EXAMPLE — Scan a PyPI package before adding to requirements
+# ============================================================
+
+include:
+  - project: 'counterspec/isnad'
+    file: 'templates/isnad-scan.gitlab-ci.yml'
+    ref: main
+
+variables:
+  PYPI_PACKAGE_TO_AUDIT: "requests==2.31.0"
+
+stages:
+  - audit
+  - test
+
+isnad:audit:pypi:
+  extends: isnad:scan
+  stage: audit
+  variables:
+    ISNAD_TARGET:    "pypi:${PYPI_PACKAGE_TO_AUDIT}"
+    ISNAD_FORMAT:    "sarif"
+    ISNAD_MIN_TRUST: "80"
+    ISNAD_FAIL_ON:   "high"
+  rules:
+    - when: always
+
+run:tests:
+  stage: test
+  image: python:3.11-slim
+  needs:
+    - job: isnad:audit:pypi
+  script:
+    - pip install "${PYPI_PACKAGE_TO_AUDIT}"
+    - python -m pytest
+  rules:
+    - when: on_success

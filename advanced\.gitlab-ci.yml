@@ -1,0 +1,140 @@
+# ============================================================
+# EXAMPLE — Advanced isnad-scan integration
+# ============================================================
+# Demonstrates:
+#   • Scanning multiple targets (repo + external package)
+#   • Custom trust-score threshold
+#   • JSON report for downstream processing
+#   • Quality gate blocking merges
+#   • Scheduled nightly deep scan
+#   • Custom runner tags
+# ============================================================
+
+include:
+  - project: 'counterspec/isnad'
+    file: 'templates/isnad-scan.gitlab-ci.yml'
+    ref: main
+
+variables:
+  # Raise the trust bar for production-bound code
+  ISNAD_SCAN_MIN_TRUST_SCORE: "85"
+
+stages:
+  - build
+  - scan
+  - gate
+  - deploy
+
+# ── Override the default scan job with project-specific settings ──
+isnad:scan:
+  stage: scan
+  variables:
+    ISNAD_TARGET:    "."
+    ISNAD_FORMAT:    "sarif"
+    ISNAD_MIN_TRUST: "85"
+    ISNAD_FAIL_ON:   "high"
+    # Suppress known-false-positive rules
+    ISNAD_SKIP_RULES: "ISNAD-001,ISNAD-007"
+  rules:
+    - when: always
+
+# ── Scan a third-party PyPI package before adding it ────────────
+isnad:scan:dependency:
+  extends: isnad:scan
+  stage: scan
+  variables:
+    ISNAD_TARGET:    "pypi:some-new-dependency"
+    ISNAD_FORMAT:    "json"
+    ISNAD_MIN_TRUST: "90"
+    ISNAD_FAIL_ON:   "medium"
+    ISNAD_REPORT_DIR: "isnad-reports/dependency"
+  artifacts:
+    paths:
+      - isnad-reports/dependency/
+    expire_in: 7 days
+    when: always
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+    - when: never
+
+# ── Quality gate: block merge if trust score insufficient ────────
+isnad:gate:
+  image: python:3.11-slim
+  stage: gate
+  needs:
+    - job: isnad:scan
+      artifacts: true
+  script:
+    - pip install --quiet jq python-json-tool
+    - |
+      REPORT="isnad-reports/isnad-report.json"
+      if [ ! -f "$REPORT" ]; then
+        echo "[isnad:gate] No JSON report found — skipping numeric gate."
+        exit 0
+      fi
+
+      SCORE=$(python3 -c "
+      import json, sys
+      data = json.load(open('$REPORT'))
+      print(data.get('summary', {}).get('trustScore', 0))
+      ")
+
+      echo "[isnad:gate] Trust score: ${SCORE} (required: 85)"
+
+      python3 -c "
+      score = float('${SCORE}')
+      threshold = 85.0
+      if score < threshold:
+          print(f'❌ GATE FAILED — score {score} < {threshold}')
+          raise SystemExit(1)
+      print(f'✅ GATE PASSED — score {score} >= {threshold}')
+      "
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: on_success
+    - when: never
+  allow_failure: false
+
+# ── Nightly deep scan (schedule-triggered) ──────────────────────
+isnad:nightly:
+  extends: isnad:scan
+  stage: scan
+  variables:
+    ISNAD_TARGET:    "."
+    ISNAD_FORMAT:    "json"
+    ISNAD_MIN_TRUST: "75"
+    ISNAD_FAIL_ON:   "critical"
+    # Enable deep scan mode for nightly runs
+    ISNAD_EXTRA_ARGS: "--deep --include-dev-dependencies"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: always
+    - when: never
+  artifacts:
+    paths:
+      - isnad-reports/
+    expire_in: 90 days
+    when: always
+
+# ── Example build / deploy stubs ────────────────────────────────
+build:
+  stage: build
+  image: node:20-slim
+  script:
+    - echo "Building project..."
+  rules:
+    - when: always
+
+deploy:production:
+  stage: deploy
+  image: alpine:latest
+  script:
+    - echo "Deploying to production..."
+  needs:
+    - build
+    - isnad:scan
+    - isnad:gate
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: manual

@@ -1,0 +1,206 @@
+# ============================================================
+# isnad-scan GitLab CI/CD Integration Template
+# ============================================================
+# This is the ROOT template that demonstrates isnad-scan
+# integrated into a full GitLab CI/CD pipeline.
+#
+# For use as a standalone component in your project, see:
+#   templates/isnad-scan.gitlab-ci.yml
+#
+# Documentation: docs/gitlab-ci-integration.md
+# ============================================================
+
+# ── Configurable Variables ───────────────────────────────────
+variables:
+  # isnad-scan version to use (use a pinned version in production)
+  ISNAD_SCAN_VERSION: "latest"
+
+  # Target to scan — can be overridden per-job or via CI/CD settings
+  # Accepts: directory path, git URL, npm package name, or PyPI package name
+  ISNAD_SCAN_TARGET: "."
+
+  # Output format: sarif | json | table
+  ISNAD_SCAN_OUTPUT_FORMAT: "sarif"
+
+  # Path where the report will be written
+  ISNAD_SCAN_REPORT_PATH: "isnad-report"
+
+  # Minimum trust score to pass (0–100). Jobs fail below this threshold.
+  ISNAD_SCAN_MIN_TRUST_SCORE: "70"
+
+  # Severity level that triggers a pipeline failure: critical | high | medium | low
+  ISNAD_SCAN_FAIL_ON_SEVERITY: "high"
+
+  # Space-separated list of rule IDs to skip
+  ISNAD_SCAN_SKIP_RULES: ""
+
+  # Enable verbose logging: "true" | "false"
+  ISNAD_SCAN_VERBOSE: "false"
+
+  # Docker image used for scanning jobs
+  ISNAD_SCAN_IMAGE: "python:3.11-slim"
+
+# ── Stages ───────────────────────────────────────────────────
+stages:
+  - scan          # isnad security scanning
+  - report        # upload / process results
+  - gate          # quality gate — blocks merge if score too low
+
+# ── Hidden job: reusable scan setup ─────────────────────────
+.isnad_scan_setup: &isnad_scan_setup
+  image: $ISNAD_SCAN_IMAGE
+  before_script:
+    - echo "[isnad] Installing isnad-scan v${ISNAD_SCAN_VERSION}..."
+    - pip install --quiet --upgrade pip
+    - |
+      if [ "$ISNAD_SCAN_VERSION" = "latest" ]; then
+        pip install --quiet isnad-scan
+      else
+        pip install --quiet "isnad-scan==${ISNAD_SCAN_VERSION}"
+      fi
+    - isnad-scan --version
+    - mkdir -p "$ISNAD_SCAN_REPORT_PATH"
+
+# ── Job: SARIF scan (feeds GitLab Security Dashboard) ────────
+isnad:scan:sarif:
+  <<: *isnad_scan_setup
+  stage: scan
+  script:
+    - |
+      echo "[isnad] Starting SARIF scan of target: ${ISNAD_SCAN_TARGET}"
+
+      ARGS="--format sarif"
+      ARGS="$ARGS --output ${ISNAD_SCAN_REPORT_PATH}/gl-sast-report.sarif"
+      ARGS="$ARGS --min-trust ${ISNAD_SCAN_MIN_TRUST_SCORE}"
+      ARGS="$ARGS --fail-on ${ISNAD_SCAN_FAIL_ON_SEVERITY}"
+
+      if [ -n "$ISNAD_SCAN_SKIP_RULES" ]; then
+        ARGS="$ARGS --skip-rules ${ISNAD_SCAN_SKIP_RULES}"
+      fi
+
+      if [ "$ISNAD_SCAN_VERBOSE" = "true" ]; then
+        ARGS="$ARGS --verbose"
+      fi
+
+      isnad-scan $ARGS "${ISNAD_SCAN_TARGET}"
+  artifacts:
+    # GitLab Security Dashboard ingests this artifact automatically
+    reports:
+      sast: $ISNAD_SCAN_REPORT_PATH/gl-sast-report.sarif
+    paths:
+      - $ISNAD_SCAN_REPORT_PATH/gl-sast-report.sarif
+    expire_in: 30 days
+    when: always   # upload even on failure so the dashboard shows issues
+  rules:
+    # Run on every push and MR; skip if [skip-isnad] is in the commit message
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+    - if: '$CI_COMMIT_BRANCH'
+      when: always
+    - when: never
+
+# ── Job: JSON scan (machine-readable, for custom tooling) ─────
+isnad:scan:json:
+  <<: *isnad_scan_setup
+  stage: scan
+  script:
+    - |
+      echo "[isnad] Starting JSON scan of target: ${ISNAD_SCAN_TARGET}"
+
+      isnad-scan \
+        --format json \
+        --output "${ISNAD_SCAN_REPORT_PATH}/isnad-report.json" \
+        --min-trust "${ISNAD_SCAN_MIN_TRUST_SCORE}" \
+        --fail-on "${ISNAD_SCAN_FAIL_ON_SEVERITY}" \
+        "${ISNAD_SCAN_TARGET}"
+  artifacts:
+    paths:
+      - $ISNAD_SCAN_REPORT_PATH/isnad-report.json
+    expire_in: 30 days
+    when: always
+  rules:
+    - if: '$ISNAD_ENABLE_JSON_REPORT == "true"'
+      when: always
+    - when: never
+
+# ── Job: Human-readable table output (for MR comments) ────────
+isnad:scan:summary:
+  <<: *isnad_scan_setup
+  stage: scan
+  script:
+    - |
+      echo "[isnad] Generating human-readable summary..."
+
+      isnad-scan \
+        --format table \
+        --output "${ISNAD_SCAN_REPORT_PATH}/isnad-summary.txt" \
+        --min-trust "${ISNAD_SCAN_MIN_TRUST_SCORE}" \
+        "${ISNAD_SCAN_TARGET}" | tee "${ISNAD_SCAN_REPORT_PATH}/isnad-summary.txt"
+  artifacts:
+    paths:
+      - $ISNAD_SCAN_REPORT_PATH/isnad-summary.txt
+    expire_in: 7 days
+    when: always
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+    - when: never
+
+# ── Job: Upload results to isnad registry (optional) ─────────
+isnad:report:upload:
+  image: $ISNAD_SCAN_IMAGE
+  stage: report
+  needs:
+    - job: isnad:scan:sarif
+      artifacts: true
+  script:
+    - pip install --quiet isnad-scan
+    - |
+      echo "[isnad] Uploading report to isnad registry..."
+
+      isnad-scan publish \
+        --report "${ISNAD_SCAN_REPORT_PATH}/gl-sast-report.sarif" \
+        --project "${CI_PROJECT_PATH}" \
+        --commit  "${CI_COMMIT_SHA}" \
+        --ref     "${CI_COMMIT_REF_NAME}" \
+        --token   "${ISNAD_API_TOKEN}"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $ISNAD_API_TOKEN != ""'
+      when: on_success
+    - when: never
+
+# ── Job: Quality gate — block MR if trust score too low ───────
+isnad:gate:
+  image: $ISNAD_SCAN_IMAGE
+  stage: gate
+  needs:
+    - job: isnad:scan:json
+      artifacts: true
+      optional: true
+    - job: isnad:scan:sarif
+      artifacts: true
+  script:
+    - pip install --quiet isnad-scan jq
+    - |
+      echo "[isnad] Running quality gate (min trust score: ${ISNAD_SCAN_MIN_TRUST_SCORE})..."
+
+      # Parse trust score from JSON report if available
+      if [ -f "${ISNAD_SCAN_REPORT_PATH}/isnad-report.json" ]; then
+        SCORE=$(jq -r '.summary.trustScore // 0' \
+                  "${ISNAD_SCAN_REPORT_PATH}/isnad-report.json")
+        echo "[isnad] Detected trust score: ${SCORE}"
+
+        if [ "$(echo "$SCORE < $ISNAD_SCAN_MIN_TRUST_SCORE" | bc)" = "1" ]; then
+          echo "[isnad] ❌ GATE FAILED: Trust score ${SCORE} is below threshold ${ISNAD_SCAN_MIN_TRUST_SCORE}"
+          exit 1
+        else
+          echo "[isnad] ✅ GATE PASSED: Trust score ${SCORE} >= ${ISNAD_SCAN_MIN_TRUST_SCORE}"
+        fi
+      else
+        echo "[isnad] No JSON report found — relying on SARIF exit code."
+      fi
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $ISNAD_ENABLE_GATE == "true"'
+      when: on_success
+    - when: never
+  allow_failure: false

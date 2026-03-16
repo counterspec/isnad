@@ -1,0 +1,153 @@
+# ============================================================
+# isnad-scan — Reusable GitLab CI Component
+# ============================================================
+# Include this file in your project's .gitlab-ci.yml via the
+# `include` keyword (local, remote, or GitLab CI Catalog).
+#
+# Minimal usage:
+#
+#   include:
+#     - project: 'counterspec/isnad'
+#       file: 'templates/isnad-scan.gitlab-ci.yml'
+#       ref: main
+#
+# That single include adds the `isnad:scan` job to your pipeline
+# and surfaces findings in the GitLab Security Dashboard.
+#
+# See docs/gitlab-ci-integration.md for full configuration.
+# ============================================================
+
+spec:
+  inputs:
+    # ── Scan target ─────────────────────────────────────────
+    target:
+      description: "Path, git URL, npm package, or PyPI package to scan."
+      default: "."
+      type: string
+
+    # ── isnad-scan version ───────────────────────────────────
+    version:
+      description: "isnad-scan package version. Pin this in production."
+      default: "latest"
+      type: string
+
+    # ── Output format ────────────────────────────────────────
+    output_format:
+      description: "Report format: sarif | json | table"
+      default: "sarif"
+      options: ["sarif", "json", "table"]
+
+    # ── Thresholds ───────────────────────────────────────────
+    min_trust_score:
+      description: "Minimum trust score (0–100) required to pass."
+      default: "70"
+      type: string
+
+    fail_on_severity:
+      description: "Fail the pipeline when a finding of this severity or higher exists."
+      default: "high"
+      options: ["critical", "high", "medium", "low", "none"]
+
+    # ── Rule exclusions ──────────────────────────────────────
+    skip_rules:
+      description: "Comma-separated rule IDs to skip."
+      default: ""
+      type: string
+
+    # ── Stage placement ──────────────────────────────────────
+    stage:
+      description: "Pipeline stage to run the scan in."
+      default: "test"
+      type: string
+
+    # ── Runner tags ──────────────────────────────────────────
+    runner_tags:
+      description: "JSON array of GitLab runner tags."
+      default: '[]'
+      type: string
+
+---
+
+# ── Reusable scan job ─────────────────────────────────────────
+isnad:scan:
+  stage: $[[ inputs.stage ]]
+  image: python:3.11-slim
+  tags: $[[ inputs.runner_tags ]]
+
+  variables:
+    ISNAD_TARGET:        "$[[ inputs.target ]]"
+    ISNAD_VERSION:       "$[[ inputs.version ]]"
+    ISNAD_FORMAT:        "$[[ inputs.output_format ]]"
+    ISNAD_MIN_TRUST:     "$[[ inputs.min_trust_score ]]"
+    ISNAD_FAIL_ON:       "$[[ inputs.fail_on_severity ]]"
+    ISNAD_SKIP_RULES:    "$[[ inputs.skip_rules ]]"
+    ISNAD_REPORT_DIR:    "isnad-reports"
+
+  before_script:
+    - pip install --quiet --upgrade pip
+    - |
+      if [ "$ISNAD_VERSION" = "latest" ]; then
+        pip install --quiet isnad-scan
+      else
+        pip install --quiet "isnad-scan==${ISNAD_VERSION}"
+      fi
+    - isnad-scan --version
+    - mkdir -p "$ISNAD_REPORT_DIR"
+
+  script:
+    - |
+      # ── Build argument list ──────────────────────────────
+      ARGS="--format ${ISNAD_FORMAT}"
+      ARGS="$ARGS --min-trust ${ISNAD_MIN_TRUST}"
+
+      # Output file extension depends on format
+      case "$ISNAD_FORMAT" in
+        sarif) EXT="sarif" ;;
+        json)  EXT="json"  ;;
+        *)     EXT="txt"   ;;
+      esac
+
+      REPORT_FILE="${ISNAD_REPORT_DIR}/isnad-report.${EXT}"
+      ARGS="$ARGS --output ${REPORT_FILE}"
+
+      if [ "$ISNAD_FAIL_ON" != "none" ]; then
+        ARGS="$ARGS --fail-on ${ISNAD_FAIL_ON}"
+      fi
+
+      if [ -n "$ISNAD_SKIP_RULES" ]; then
+        # Convert comma-separated to space-separated flags
+        for RULE in $(echo "$ISNAD_SKIP_RULES" | tr ',' ' '); do
+          ARGS="$ARGS --skip-rule ${RULE}"
+        done
+      fi
+
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      echo " isnad-scan"
+      echo " Target  : ${ISNAD_TARGET}"
+      echo " Format  : ${ISNAD_FORMAT}"
+      echo " Min Trust: ${ISNAD_MIN_TRUST}"
+      echo " Fail On : ${ISNAD_FAIL_ON}"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      isnad-scan $ARGS "${ISNAD_TARGET}"
+
+      echo ""
+      echo "[isnad] Report written to: ${REPORT_FILE}"
+
+  artifacts:
+    reports:
+      # SARIF files are automatically parsed by GitLab Security Dashboard
+      sast: isnad-reports/isnad-report.sarif
+    paths:
+      - isnad-reports/
+    expire_in: 30 days
+    when: always  # always upload so failures are visible in the dashboard
+
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: always
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - when: never

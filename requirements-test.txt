@@ -1,0 +1,6 @@
+# Test dependencies for isnad-scan GitLab CI template tests
+pytest>=7.4.0
+pyyaml>=6.0.1
+
+# Optional — for CLI smoke tests
+# isnad-scan>=1.0.0

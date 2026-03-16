@@ -1,0 +1,17 @@
+# ============================================================
+# EXAMPLE — Basic isnad-scan integration
+# ============================================================
+# Scans the repository root on every push and MR.
+# Findings appear in the GitLab Security Dashboard (SAST).
+# ============================================================
+
+include:
+  - project: 'counterspec/isnad'
+    file: 'templates/isnad-scan.gitlab-ci.yml'
+    ref: main
+
+stages:
+  - test
+
+# The include block above injects the `isnad:scan` job.
+# No additional configuration is required for a basic setup.

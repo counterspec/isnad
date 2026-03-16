@@ -1,0 +1,17 @@
+# ============================================================
+# EXAMPLE — How to use the component as a CI/CD Catalog item
+# ============================================================
+# This shows the GitLab CI Catalog `component` syntax (GitLab 16.0+).
+# Use this approach when the template is published to the CI/CD Catalog.
+# ============================================================
+
+include:
+  - component: gitlab.com/counterspec/isnad/isnad-scan@main
+    inputs:
+      target: "."
+      min_trust_score: "80"
+      fail_on_severity: "high"
+      output_format: "sarif"
+
+stages:
+  - test

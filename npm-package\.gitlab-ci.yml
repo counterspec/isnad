@@ -1,0 +1,42 @@
+# ============================================================
+# EXAMPLE — Scan an npm package before installing it
+# ============================================================
+# Use isnad-scan to vet npm packages in your CI pipeline
+# before they ever land in a node_modules folder.
+# ============================================================
+
+include:
+  - project: 'counterspec/isnad'
+    file: 'templates/isnad-scan.gitlab-ci.yml'
+    ref: main
+
+variables:
+  # Package to audit — set this in your CI/CD variables or
+  # override per-job as shown below.
+  NPM_PACKAGE_TO_AUDIT: "left-pad@1.3.0"
+
+stages:
+  - audit
+  - install
+
+isnad:audit:npm:
+  extends: isnad:scan
+  stage: audit
+  variables:
+    ISNAD_TARGET:    "npm:${NPM_PACKAGE_TO_AUDIT}"
+    ISNAD_FORMAT:    "sarif"
+    ISNAD_MIN_TRUST: "80"
+    ISNAD_FAIL_ON:   "high"
+  rules:
+    - when: always
+
+install:dependencies:
+  stage: install
+  image: node:20-slim
+  needs:
+    - job: isnad:audit:npm
+  script:
+    - echo "isnad-scan passed — safe to install ${NPM_PACKAGE_TO_AUDIT}"
+    - npm install "${NPM_PACKAGE_TO_AUDIT}"
+  rules:
+    - when: on_success
