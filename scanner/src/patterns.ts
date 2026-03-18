@@ -78,7 +78,7 @@ export const DANGEROUS_PATTERNS: Pattern[] = [
     name: 'Environment Variable Access',
     description: 'Accessing environment variables (may contain secrets)',
     severity: 'medium',
-    pattern: /process\.env\[|process\.env\./gi,
+    pattern: /process\.env/gis,
     category: 'credential_access'
   },
   {
@@ -140,6 +140,30 @@ export const DANGEROUS_PATTERNS: Pattern[] = [
     severity: 'high',
     pattern: /dns\.resolve|dns\.lookup.*[+`$]/gi,
     category: 'network'
+  },
+  {
+    id: 'NET_WEBSOCKET_CONNECTION',
+    name: 'WebSocket Connection Initialization',
+    description: 'Creating a WebSocket connection (potential C2 channel)',
+    severity: 'high',
+    pattern: /require\s*\(\s*['"`]ws['"`]\s*\)|new\s+WebSocket\s*\(|websocket\/package|from\s+['"`]ws['"`]/gi,
+    category: 'network'
+  },
+  {
+    id: 'NET_WEBSOCKET_EXFIL',
+    name: 'Data Exfiltration over WebSocket',
+    description: 'Sending data through WebSocket (potential exfiltration)',
+    severity: 'high',
+    pattern: /ws\.send\s*\(|websocket\.send\s*\(|socket\.send\s*\(/gi,
+    category: 'exfiltration'
+  },
+  {
+    id: 'NET_WEBSOCKET_REVERSE_SHELL',
+    name: 'Reverse Shell over WebSocket',
+    description: 'Reverse shell implementation using WebSocket C2',
+    severity: 'critical',
+    pattern: /ws\.on\s*\(\s*['"`]message['"`]|websocket\.on\s*\(\s*['"`]message['"`].*eval|websocket\.on.*exec|WebSocket.*message.*eval|eval\s*\(.*data\)/gi,
+    category: 'code_execution'
   },
 
   // === MEDIUM: Obfuscation ===
