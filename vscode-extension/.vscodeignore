@@ -1,0 +1,11 @@
+vscode-extension/**
+node_modules
+src
+out/test
+**/*.map
+**/tsconfig.json
+**/*.ts
+.gitignore
+*.md
+yarn.lock
+package-lock.json
