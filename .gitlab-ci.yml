@@ -1,0 +1,9 @@
+stages:
+  - test
+  - deploy
+
+isnad-test:
+  stage: test
+  script:
+    - echo "STRIKE_VERIFIED: GitLab CI Template Active."
+    - make test
