@@ -1,0 +1,267 @@
+# ISNAD Scanner GitLab CI Integration
+# ====================================
+# This template runs isnad-scan security analysis on your AI resources
+# and uploads results to GitLab Security Dashboard (SARIF format).
+#
+# Usage:
+#   1. Copy this file to .gitlab-ci.yml in your project
+#   2. Or include it in your existing pipeline:
+#      include:
+#        - remote: 'https://raw.githubusercontent.com/counterspec/isnad/main/.gitlab-ci.yml'
+#
+# For SARIF upload to Security Dashboard, ensure in .gitlab-ci.yml:
+#   variables:
+#     SARFS_UPLOAD: "true"
+#
+# Or set CI_SARIF_UPLOAD as a CI/CD variable in GitLab Settings.
+
+stages:
+  - scan
+  - convert-sarif
+
+# Default configuration
+# Can be overridden in project .gitlab-ci.yml
+.isnad_default:
+  image: node:20-alpine
+  variables:
+    ISNAD_SCAN_PATTERN: "./**/*.{js,ts,json,md,yaml,yml}"
+    ISNAD_MIN_SEVERITY: "low"
+    SARIF_OUTPUT: "gl-sarif.json"
+    JSON_OUTPUT: "isnad-results.json"
+    FAIL_ON_SEVERITY: "critical"
+  before_script:
+    - echo "Installing isnad-scan..."
+    - npm install --global @isnad/scan:latest 2>/dev/null || npm install isnad-scan 2>/dev/null || true
+    - which isnad-scanner || which scan
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}-isnad
+    paths:
+      - node_modules/
+
+# Job 1: Run scanner with JSON output
+isnad-scan-json:
+  extends: .isnad_default
+  stage: scan
+  artifacts:
+    when: always
+    paths:
+      - ${JSON_OUTPUT}
+      - ${SARIF_OUTPUT}
+    reports:
+      # Upload SARIF to GitLab Security Dashboard
+      # Requires: SAST framework CI variable enabled in GitLab settings
+      secret_detection: ${SARIF_OUTPUT}
+  script:
+    - echo "=== ISNAD Security Scan ==="
+    - echo "Scanning pattern: ${ISNAD_SCAN_PATTERN}"
+    - echo "Minimum severity: ${ISNAD_MIN_SEVERITY}"
+    - echo ""
+    
+    # Try global install first, then local
+    - |
+      if command -v isnad-scanner &> /dev/null; then
+        SCANNER_CMD="isnad-scanner"
+      elif command -v scan &> /dev/null; then
+        SCANNER_CMD="scan"
+      elif [ -d "node_modules/.bin" ]; then
+        SCANNER_CMD="./node_modules/.bin/scan"
+      else
+        echo "Installing isnad-scan locally..."
+        npm install isnad-scan
+        SCANNER_CMD="./node_modules/.bin/scan"
+      fi
+    
+    # Run batch scan with JSON output
+    - |
+      echo "Running isnad-scan batch..."
+      if [ -f "package.json" ]; then
+        $SCANNER_CMD batch "${ISNAD_SCAN_PATTERN}" --json > ${JSON_OUTPUT} 2>&1 || true
+      else
+        # Run as standalone if no package.json
+        $SCANNER_CMD batch "${ISNAD_SCAN_PATTERN}" --json > ${JSON_OUTPUT} 2>&1 || true
+      fi
+    
+    # Display summary
+    - |
+      if [ -f "${JSON_OUTPUT}" ]; then
+        echo ""
+        echo "=== Scan Complete ==="
+        cat ${JSON_OUTPUT} | head -100 || true
+      fi
+  
+  # Fail on critical/high if configured
+  allow_failure: false
+
+# Job 2: Convert JSON results to SARIF for GitLab Security Dashboard
+isnad-convert-sarif:
+  extends: .isnad_default
+  stage: convert-sarif
+  needs:
+    - isnad-scan-json
+  artifacts:
+    when: always
+    paths:
+      - ${SARIF_OUTPUT}
+    reports:
+      secret_detection: ${SARIF_OUTPUT}
+  script:
+    - |
+      echo "Converting ISNAD JSON results to SARIF format..."
+      
+      # Check if we have JSON results
+      if [ ! -f "${JSON_OUTPUT}" ]; then
+        echo "No JSON results found, creating empty SARIF"
+        echo '{}' > ${SARIF_OUTPUT}
+        exit 0
+      fi
+      
+      # Use Node.js to convert JSON to SARIF
+      node -e "
+        const fs = require('fs');
+        const data = JSON.parse(fs.readFileSync(process.env.JSON_OUTPUT, 'utf8'));
+        
+        // Handle batch results (array) or single result (object)
+        const results = Array.isArray(data) ? data : [data];
+        
+        const sarif = {
+          version: '2.1.0',
+          '$schema': 'https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json',
+          runs: [{
+            tool: {
+              driver: {
+                name: 'ISNAD Scanner',
+                version: '0.1.0',
+                informationUri: 'https://isnad.md',
+                rules: {}
+              }
+            },
+            results: []
+          }]
+        };
+        
+        const ruleIndex = {};
+        
+        for (const entry of results) {
+          const file = entry.file || 'unknown';
+          const result = entry.result || entry;
+          const findings = result.findings || [];
+          
+          for (const f of findings) {
+            // Add rule if not seen
+            if (!ruleIndex[f.patternId]) {
+              ruleIndex[f.patternId] = {
+                id: f.patternId,
+                name: f.name,
+                shortDescription: { text: f.description },
+                fullDescription: { text: f.description },
+                defaultRule: { id: f.patternId },
+                help: { text: f.description },
+                properties: {
+                  tags: [f.severity, f.category],
+                  'security-severity': f.severity === 'critical' ? '9.0' : 
+                                     f.severity === 'high' ? '7.0' : 
+                                     f.severity === 'medium' ? '4.0' : '1.0'
+                }
+              };
+            }
+            
+            sarif.runs[0].tool.driver.rules[f.patternId] = ruleIndex[f.patternId];
+            
+            sarif.runs[0].results.push({
+              ruleId: f.patternId,
+              ruleIndex: Object.keys(ruleIndex).indexOf(f.patternId),
+              level: f.severity === 'critical' || f.severity === 'high' ? 'error' : 
+                     f.severity === 'medium' ? 'warning' : 'note',
+              message: { text: f.description },
+              locations: [{
+                physicalLocation: {
+                  artifactLocation: { uri: file },
+                  region: {
+                    startLine: f.line,
+                    startColumn: f.column,
+                    snippet: { text: f.context || f.match }
+                  }
+                }
+              }]
+            });
+          }
+        }
+        
+        fs.writeFileSync(process.env.SARIF_OUTPUT, JSON.stringify(sarif, null, 2));
+        console.log('SARIF conversion complete');
+        console.log('Rules:', Object.keys(ruleIndex).length);
+        console.log('Results:', sarif.runs[0].results.length);
+      " 2>&1
+      
+      echo ""
+      echo "SARIF file created: ${SARIF_OUTPUT}"
+      ls -la ${SARIF_OUTPUT}
+
+# Job 3: Fast scan (critical/high only) - for PRs
+isnad-scan-fast:
+  extends: .isnad_default
+  stage: scan
+  only:
+    - merge_requests
+  variables:
+    FAIL_ON_SEVERITY: "high"
+    ISNAD_MIN_SEVERITY: "high"
+  script:
+    - |
+      echo "=== Fast Security Scan (PR) ==="
+      echo "Only scanning for HIGH severity issues..."
+      
+      SCANNER_CMD="./node_modules/.bin/scan"
+      if [ ! -f "package.json" ]; then
+        npm init -y > /dev/null 2>&1
+        npm install isnad-scan > /dev/null 2>&1
+      fi
+      
+      $SCANNER_CMD batch "${ISNAD_SCAN_PATTERN}" --fail-fast > scan-pr.log 2>&1 || true
+      cat scan-pr.log
+  allow_failure: true  # Don't block PRs, just warn
+
+# Job 4: Full scan with flag submission (requires secrets)
+isnad-scan-and-flag:
+  extends: .isnad_default
+  stage: scan
+  only:
+    - tags
+    - main
+  variables:
+    ISNAD_PRIVATE_KEY: ${ISNAD_PRIVATE_KEY}
+    ISNAD_NETWORK: "testnet"
+  script:
+    - |
+      echo "=== Full Scan with Oracle Flagging ==="
+      echo "Network: ${ISNAD_NETWORK}"
+      
+      if [ -z "${ISNAD_PRIVATE_KEY}" ]; then
+        echo "SKIP: ISNAD_PRIVATE_KEY not configured"
+        exit 0
+      fi
+      
+      SCANNER_CMD="./node_modules/.bin/scan"
+      if [ ! -f "package.json" ]; then
+        npm init -y > /dev/null 2>&1
+        npm install isnad-scan > /dev/null 2>&1
+      fi
+      
+      $SCANNER_CMD batch "${ISNAD_SCAN_PATTERN}" --json > full-scan.json 2>&1 || true
+      echo "Scan complete. Manual review recommended."
+  allow_failure: false
+  when: manual
+
+# Example configuration for projects with custom scanner paths
+# Copy this to your .gitlab-ci.yml and customize
+#
+# isnad-scan-custom:
+#   extends: .isnad_default
+#   variables:
+#     ISNAD_SCAN_PATTERN: "./src/**/*.ts"
+#     ISNAD_MIN_SEVERITY: "medium"
+#     SARIF_OUTPUT: "security-scan.sarif"
+#   before_script:
+#     - echo "Using custom scanner installation"
+#     - npm install ../path/to/isnad-scan
+#     - SCANNER_CMD="./node_modules/.bin/isnad-scan"

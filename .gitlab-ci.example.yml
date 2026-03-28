@@ -1,0 +1,31 @@
+# Example: How to include ISNAD Scanner in your project
+# ======================================================
+#
+# Copy this content to your .gitlab-ci.yml or include from remote
+#
+# Option 1: Include from ISNAD repository
+# -------------------------------------------
+# include:
+#   - remote: 'https://raw.githubusercontent.com/counterspec/isnad/main/.gitlab-ci.yml'
+#
+# Option 2: Copy .gitlab-ci.yml from ISNAD repo
+# -------------------------------------------
+# 1. Download: curl -O https://raw.githubusercontent.com/counterspec/isnad/main/.gitlab-ci.yml
+# 2. Customize variables below if needed
+# 3. Commit to your repository
+#
+# Customization:
+# --------------
+# variables:
+#   ISNAD_SCAN_PATTERN: "./src/**/*.ts"  # Adjust to your codebase
+#   ISNAD_MIN_SEVERITY: "medium"          # Only report medium+
+#
+# GitLab Settings:
+# ----------------
+# For SARIF upload to Security Dashboard:
+# 1. Go to Settings → CI/CD → General pipelines
+# 2. Expand "Security config" section
+# 3. Enable "Secret detection" framework
+#
+# Or set as CI/CD variable:
+#   SECRET_DETECTION_FRAMEWORK = "custom"
