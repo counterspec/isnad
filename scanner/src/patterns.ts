@@ -49,10 +49,10 @@ export const DANGEROUS_PATTERNS: Pattern[] = [
   // === HIGH: Data exfiltration ===
   {
     id: 'EXFIL_FETCH_DYNAMIC',
-    name: 'Dynamic URL Fetch',
-    description: 'Fetching from dynamically constructed URLs',
-    severity: 'high',
-    pattern: /fetch\s*\(\s*[^'"`\s]/gi,
+    name: 'Suspicious Dynamic URL Fetch',
+    description: 'Fetching from dynamically constructed URLs that may contain sensitive data',
+    severity: 'medium',
+    pattern: /fetch\s*\(\s*.*(btoa|Buffer\.from.*toString.*base64|process\.env|os\.homedir|\.env|id_rsa)/gi,
     category: 'exfiltration'
   },
   {
@@ -184,6 +184,40 @@ export const DANGEROUS_PATTERNS: Pattern[] = [
     severity: 'high',
     pattern: /(NODE_TLS_REJECT_UNAUTHORIZED|rejectUnauthorized\s*:\s*false)/gi,
     category: 'security_bypass'
+  },
+
+  // === HIGH: Malicious WebSocket handlers ===
+  {
+    id: 'WS_SUSPICIOUS_ENDPOINT',
+    name: 'WebSocket Connection to Suspicious Endpoint',
+    description: 'WebSocket connection to suspicious domains commonly used for C2',
+    severity: 'high',
+    pattern: /new\s+(WebSocket|ws)\s*\(\s*['"`][^'"`]*(ngrok\.io|requestbin\.net|pipedream\.com|discord\.gg|temp-mail|bin\.sh|free\.pt|pasten\.xyz|c2\.|command-and-control|reverse-shell)[^'"`]*['"`]\s*\)/gi,
+    category: 'network'
+  },
+  {
+    id: 'WS_EXFILTRATION',
+    name: 'Data Exfiltration Over WebSocket',
+    description: 'Sending sensitive data (environment variables, files, base64 encoded content) over WebSocket',
+    severity: 'high',
+    pattern: /\.send\s*\(\s*.*(process\.env|btoa|Buffer\.from.*toString.*base64|\.env|\.ssh|id_rsa|credentials|os\.homedir)/gi,
+    category: 'exfiltration'
+  },
+  {
+    id: 'WS_REVERSE_SHELL',
+    name: 'Reverse Shell Over WebSocket',
+    description: 'Piping shell process stdin/stdout/stderr to WebSocket (reverse shell pattern)',
+    severity: 'critical',
+    pattern: /(spawn|exec)\s*\(.*\.(stdin|stdout|stderr)\.(pipe|on).*\.send|\.send.*\.(stdin|stdout|stderr)/gi,
+    category: 'code_execution'
+  },
+  {
+    id: 'WS_IMPORT',
+    name: 'WebSocket Module Import',
+    description: 'Importing WebSocket/ws module (low severity, context-dependent)',
+    severity: 'low',
+    pattern: /require\s*\(\s*['"`]ws['"`]\s*\)|from\s+['"`]ws['"`]/gi,
+    category: 'network'
   }
 ];
 
@@ -195,17 +229,89 @@ export const ALLOWLIST_PATTERNS = [
   /console\.(log|error|warn|info)/gi,
   /JSON\.(parse|stringify)/gi,
   /Math\.(random|floor|ceil)/gi,
+  // Legitimate HTTP client imports
+  /require\s*\(\s*['"`](axios|node-fetch|got|request|superagent|urllib|undici|fetch)['"`]\s*\)|from\s+['"`](axios|node-fetch|got|request|superagent|urllib|undici|isomorphic-fetch)['"`]/gi,
+  // Legitimate HTTP client usage
+  /\b(axios|fetch|got|request|superagent)\s*\.\s*(get|post|put|delete|patch|head|options|request)\s*\(/gi,
+  // Common HTTP utility functions
+  /\b(encodeURI|encodeURIComponent|decodeURI|decodeURIComponent|URL|URLSearchParams)\s*\(/gi,
+  // Legitimate WebSocket usage to known safe domains
+  /new\s+(WebSocket|ws)\s*\(\s*['"`][^'"`]*(api\.openai\.com|api\.anthropic\.com|api\.cohere\.ai|generativelanguage\.googleapis\.com|api\.mistral\.ai|api\.perplexity\.ai|api\.together\.xyz|socket\.io|pusher\.com|ably\.io|pubnub\.com|firebaseio\.com|cloudflare\.com)[^'"`]*['"`]\s*\)/gi,
+  // Legitimate WebSocket send for non-sensitive data
+  /\.send\s*\(\s*(JSON\.stringify.*\{\s*['"`]event['"`]|['"`]ping['"`]|['"`]pong['"`]|['"`]hello['"`])/gi,
 ];
 
 /**
  * Known safe domains for network calls
  */
 export const SAFE_DOMAINS = [
+  // AI/LLM APIs
   'api.openai.com',
   'api.anthropic.com',
   'api.cohere.ai',
   'generativelanguage.googleapis.com',
+  'api.mistral.ai',
+  'api.perplexity.ai',
+  'api.together.xyz',
+  // Cloud provider APIs
+  'api.aws.amazon.com',
+  '*.amazonaws.com',
+  'cloud.google.com',
+  '*.googleapis.com',
+  'management.azure.com',
+  '*.azure.com',
+  'api.cloudflare.com',
+  '*.cloudflare.com',
+  'api.digitalocean.com',
+  'api.hetzner.com',
+  'api.linode.com',
+  'api.vultr.com',
+  // Dev/CI APIs
   'api.github.com',
+  'github.com',
+  'api.gitlab.com',
+  'gitlab.com',
+  'api.bitbucket.org',
+  'bitbucket.org',
+  // Package registries
   'registry.npmjs.org',
+  'npmjs.org',
   'pypi.org',
+  'pypi.python.org',
+  'rubygems.org',
+  'crates.io',
+  'registry.hub.docker.com',
+  'docker.io',
+  // Common SaaS APIs
+  'api.slack.com',
+  'slack.com',
+  'discord.com',
+  'api.discord.com',
+  'api.notion.com',
+  'notion.com',
+  'api.figma.com',
+  'figma.com',
+  'api.stripe.com',
+  'stripe.com',
+  'api.paypal.com',
+  'paypal.com',
+  'api.twilio.com',
+  'twilio.com',
+  'api.sendgrid.com',
+  'sendgrid.com',
+  'api.mailgun.net',
+  'mailgun.net',
+  // Real-time/WebSocket services
+  'socket.io',
+  'pusher.com',
+  '*.pusher.com',
+  'ably.io',
+  '*.ably.io',
+  'pubnub.com',
+  '*.pubnub.com',
+  'firebaseio.com',
+  '*.firebaseio.com',
+  'wss://*.cloudflare.com',
+  'ws://*.localhost',
+  'ws://127.0.0.1',
 ];
