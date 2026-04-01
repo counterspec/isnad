@@ -1,0 +1,49 @@
+# ISNAD Scanner GitLab CI Template
+# Docs: docs/gitlab-ci.md
+
+stages:
+  - test
+
+isnad_scan:
+  stage: test
+  image: node:20-alpine
+  variables:
+    # Scan target: file or glob pattern
+    ISNAD_SCAN_TARGET: "./**/*.js"
+    # Fail pipeline if risk level >= this value (critical|high|medium|low|none)
+    ISNAD_FAIL_THRESHOLD: "high"
+    # Incremental scan: only scan changes in merge requests
+    ISNAD_INCREMENTAL_SCAN: "true"
+    # Output SARIF report for GitLab Security Dashboard
+    ISNAD_OUTPUT_SARIF: "true"
+  script:
+    - npm install -g @isnad/scanner@latest
+    - |
+      if [ "$ISNAD_INCREMENTAL_SCAN" = "true" ] && [ "$CI_PIPELINE_SOURCE" = "merge_request_event" ]; then
+        # Get list of changed files in MR
+        CHANGED_FILES=$(git diff --name-only origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME...$CI_COMMIT_SHA | grep -E "\.(js|ts|py|sh|bash|php)$" | tr '\n' ' ')
+        if [ -z "$CHANGED_FILES" ]; then
+          echo "No relevant files changed, skipping scan"
+          exit 0
+        fi
+        SCAN_TARGET="$CHANGED_FILES"
+      else
+        SCAN_TARGET="$ISNAD_SCAN_TARGET"
+      fi
+    - |
+      if [ "$ISNAD_OUTPUT_SARIF" = "true" ]; then
+        isnad-scan batch $SCAN_TARGET --fail-threshold $ISNAD_FAIL_THRESHOLD --sarif > isnad-results.sarif
+      else
+        isnad-scan batch $SCAN_TARGET --fail-threshold $ISNAD_FAIL_THRESHOLD
+      fi
+  artifacts:
+    reports:
+      sarif: isnad-results.sarif
+    paths:
+      - isnad-results.sarif
+    when: always
+  rules:
+    - if: $ISNAD_SCAN_DISABLED
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"

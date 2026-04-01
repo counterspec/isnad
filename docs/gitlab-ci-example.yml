@@ -1,0 +1,42 @@
+# Example GitLab CI configuration with ISNAD Scanner
+include:
+  - remote: https://raw.githubusercontent.com/counterspec/isnad/main/.gitlab-ci-isnad.yml
+
+stages:
+  - build
+  - test
+  - deploy
+
+# Your existing build job
+build:
+  stage: build
+  image: node:20-alpine
+  script:
+    - npm install
+    - npm run build
+
+# ISNAD scan runs automatically in test stage (from included template)
+
+# Your existing test jobs
+unit_test:
+  stage: test
+  image: node:20-alpine
+  script:
+    - npm test
+
+# Your existing deploy job
+deploy:
+  stage: deploy
+  only:
+    - main
+  script:
+    - echo "Deploying to production"
+
+# Custom ISNAD configuration
+variables:
+  # Scan all JS/TS/PY files in src directory
+  ISNAD_SCAN_TARGET: "./src/**/*.{js,ts,py}"
+  # Fail only on critical severity findings
+  ISNAD_FAIL_THRESHOLD: "critical"
+  # Disable incremental scan, always scan all files
+  ISNAD_INCREMENTAL_SCAN: "false"
