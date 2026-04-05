@@ -10,6 +10,8 @@ import chalk from 'chalk';
 import { analyzeContent, formatResult, type AnalysisResult } from './analyzer.js';
 import { submitFlag, checkBalance, createEvidencePackage, hashEvidence, type OracleConfig } from './oracle.js';
 import { createHash } from 'crypto';
+import { writeFileSync } from 'fs';
+import { analysisResultToSarif, sarifToJson, type SarifReport } from './sarif.js';
 import 'dotenv/config';
 
 const program = new Command();
@@ -176,6 +178,7 @@ program
   .argument('<pattern>', 'Glob pattern for files to scan')
   .option('-j, --json', 'Output as JSON')
   .option('--fail-fast', 'Exit on first critical/high finding')
+  .option('--sarif-output <path>', 'Export batch results as SARIF to file (GitLab Security Dashboard compatible)')
   .action(async (pattern: string, options) => {
     const { glob } = await import('glob');
     const files = await glob(pattern);
@@ -232,6 +235,23 @@ program
       console.log(`  🟡 Medium:   ${summary.medium}`);
       console.log(`  🟢 Low:      ${summary.low}`);
       console.log(`  ✅ Clean:    ${summary.clean}`);
+    }
+
+    // Export SARIF report if requested
+    if (options.sarifOutput && results.length > 0) {
+      const combinedRuns = results.flatMap(r => {
+        const sarif = analysisResultToSarif(r.result, r.file);
+        return sarif.runs;
+      });
+
+      const combinedSarif: SarifReport = {
+        $schema: 'https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json',
+        version: '2.1.0',
+        runs: combinedRuns,
+      };
+
+      writeFileSync(options.sarifOutput, sarifToJson(combinedSarif));
+      console.log(chalk.green('\\nSARIF report written to: ' + options.sarifOutput));
     }
 
     if (hasHighRisk) {

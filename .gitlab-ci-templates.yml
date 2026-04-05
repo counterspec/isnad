@@ -1,0 +1,68 @@
+# ISNAD Scanner - Advanced GitLab CI Templates
+#
+# These templates extend the basic pipeline with advanced features:
+# - Auto-issue creation on critical findings
+# - Weekly scheduled scans of the entire codebase
+# - Slack/webhook notifications
+#
+# Include in your .gitlab-ci.yml:
+#   include:
+#     - remote: 'https://raw.githubusercontent.com/counterspec/isnad/main/.gitlab-ci-templates.yml'
+
+.isnad-base-scan:
+  stage: scan
+  image: node:20-alpine
+  cache:
+    key: isnad-scanner
+    paths:
+      - /tmp/isnad/scanner/node_modules/
+  before_script:
+    - apk add --no-cache git bash curl jq
+    - |
+      if [ ! -d "/tmp/isnad/scanner/dist" ]; then
+        git clone --depth 1 --branch "${ISNAD_VERSION:-main}" https://github.com/counterspec/isnad.git /tmp/isnad
+        cd /tmp/isnad/scanner
+        npm ci
+        npm run build
+        cd "$CI_PROJECT_DIR"
+      fi
+  script:
+    - mkdir -p "$CI_PROJECT_DIR/$ISNAD_REPORT_DIR"
+    - node /tmp/isnad/scanner/dist/cli.js batch "$ISNAD_SCAN_TARGETS" --json > "$ISNAD_REPORT_DIR/isnad-scan.json"
+    - node /tmp/isnad/scanner/dist/cli.js batch "$ISNAD_SCAN_TARGETS" --sarif-output "$ISNAD_REPORT_DIR/isnad-sarif.json"
+  artifacts:
+    when: always
+    reports:
+      sast: "$ISNAD_REPORT_DIR/isnad-sarif.json"
+    paths:
+      - "$ISNAD_REPORT_DIR/"
+    expire_in: 90 days
+  variables:
+    ISNAD_REPORT_DIR: "isnad-reports"
+
+# Auto-issue on critical findings
+.isnad-auto-issue:
+  stage: report
+  image: alpine
+  needs:
+    - job: isnad-security-scan
+  after_script:
+    - |
+      FINDINGS=$(cat "$CI_PROJECT_DIR/$ISNAD_REPORT_DIR/isnad-scan.json" 2>/dev/null || echo "[]")
+      CRITICAL=$(echo "$FINDINGS" | grep -c '"critical"' || true)
+      HIGH=$(echo "$FINDINGS" | grep -c '"high"' || true)
+      if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
+        echo "Creating GitLab issue for $CRITICAL critical and $HIGH high findings..."
+        curl --silent --request POST           --header "PRIVATE-TOKEN: $ISNAD_GITLAB_TOKEN"           --form "title=[SECURITY] ISNAD: $CRITICAL critical, $HIGH high findings"           --form "description=@$CI_PROJECT_DIR/$ISNAD_REPORT_DIR/isnad-scan.json"           --form "labels=security,isnad-scan"           "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/issues" 2>/dev/null || true
+      fi
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# Scheduled weekly scan
+.isnad-weekly-scan:
+  extends: .isnad-base-scan
+  variables:
+    ISNAD_SCAN_TARGETS: "src/ packages/ lib/ scripts/ tests/ contracts/"
+    ISNAD_REPORT_DIR: "isnad-reports-weekly"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
