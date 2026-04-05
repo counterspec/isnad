@@ -142,7 +142,49 @@ export const DANGEROUS_PATTERNS: Pattern[] = [
     category: 'network'
   },
 
-  // === MEDIUM: Obfuscation ===
+  // === CRITICAL: WebSocket-based attacks ===
+  {
+    id: 'WS_SUSPICIOUS_CONNECT',
+    name: 'Suspicious WebSocket Connection',
+    description: 'WebSocket connection to a suspicious or untrusted endpoint (potential C2 channel)',
+    severity: 'critical',
+    pattern: /new\s+WebSocket\s*\(\s*[^'"]*\$|new\s+WebSocket\s*\(\s*['"`](ws[s]?:\/\/(?!(api\.(github|openai|anthropic|discord|slack|telegram)\.com|wss?:\/\/localhost|wss?:\/\/127\.0\.0\.1)))/gi,
+    category: 'websocket'
+  },
+  {
+    id: 'WS_DATA_EXFIL',
+    name: 'WebSocket Data Exfiltration',
+    description: 'Sending sensitive data over WebSocket channels (credentials, tokens, environment variables)',
+    severity: 'critical',
+    pattern: /(\.send\s*\(.*process\.env|\.send\s*\(.*token|\.send\s*\(.*secret|\.send\s*\(.*password|\.send\s*\(.*apikey|\.send\s*\(.*credential)/gi,
+    category: 'websocket'
+  },
+  {
+    id: 'WS_REVERSE_SHELL',
+    name: 'WebSocket Reverse Shell',
+    description: 'Reverse shell pattern via WebSocket for remote code execution',
+    severity: 'critical',
+    pattern: /WebSocket.*require\s*\(\s*['"`]child_process['"`]\s*\)|ws\.\s*on\s*\(\s*['"`]message['"`].*exec|ws\.\s*on\s*\(\s*['"`]message['"`].*spawn|require\s*\(\s*['"`]child_process['"`]\s*\).*WebSocket|require\s*\(.*['"`]ws['"`].*exec|['"`]ws['"`].*require\s*\(\s*['"`]child_process/gi,
+    category: 'websocket'
+  },
+  {
+    id: 'WS_PERSISTENT_C2',
+    name: 'Persistent WebSocket C2 Channel',
+    description: 'WebSocket reconnection loop suggesting persistent C2 (command and control) communication',
+    severity: 'high',
+    pattern: /(WebSocket.*setInterval|setInterval.*WebSocket|setInterval.*\.send|reconnect.*WebSocket|WebSocket.*reconnect|setTimeout.*\.send.*ws)/gi,
+    category: 'websocket'
+  },
+  {
+    id: 'WS_COMMAND_EXEC',
+    name: 'WebSocket Command Execution',
+    description: 'Receiving and executing commands from a WebSocket server',
+    severity: 'critical',
+    pattern: /(ws|socket|connection)\.on\s*\(\s*['"`]message['"`].*(eval|exec|Function|spawn|spawnSync)/gi,
+    category: 'websocket'
+  },
+
+  // === LOW: Obfuscation ===
   {
     id: 'OBFUSC_HEX_STRING',
     name: 'Hex-encoded Strings',
