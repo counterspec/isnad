@@ -6,6 +6,48 @@
 *Author: Rapi (@0xRapi)*
 
 ---
+## Table of Contents
+- [Abstract](#abstract)
+- [The Problem](#the-problem)
+  - [The AI Resource Ecosystem](#the-ai-resource-ecosystem)
+  - [Current Mitigations (All Insufficient)](#current-mitigations-all-insufficient)
+  - [The Trust Gap](#the-trust-gap)
+- [The Solution: Proof-of-Stake Attestation](#the-solution-proof-of-stake-attestation)
+  - [Core Mechanism](#core-mechanism)
+  - [Why This Works](#why-this-works)
+- [Resource Types](#resource-types)
+  - [Future-Proofing](#future-proofing)
+- [The Isnad Chain](#the-isnad-chain)
+- [On-Chain Inscriptions](#on-chain-inscriptions)
+  - [Why Inscriptions?](#why-inscriptions)
+  - [Inscription Format (v1)](#inscription-format-v1)
+  - [Type Codes](#type-codes)
+  - [Flags (Bitmask)](#flags-bitmask)
+  - [Metadata Schema](#metadata-schema)
+  - [Extension Points](#extension-points)
+  - [Example Inscription](#example-inscription)
+  - [Chunked Inscriptions](#chunked-inscriptions)
+  - [Indexer Protocol](#indexer-protocol)
+- [Trust Tiers](#trust-tiers)
+- [Version Locking & Update Protection](#version-locking--update-protection)
+- [Detection Architecture](#detection-architecture)
+  - [Layer 1: Automated Scanning](#layer-1-automated-scanning)
+  - [Layer 2: Community Flagging](#layer-2-community-flagging)
+  - [Layer 3: Auditor Jury](#layer-3-auditor-jury)
+  - [Layer 4: Appeals Court](#layer-4-appeals-court)
+- [Staking Economics](#staking-economics)
+  - [Lock Periods & Yield](#lock-periods--yield)
+  - [Stake Caps (Anti-Whale)](#stake-caps-anti-whale)
+  - [Slash Mechanics](#slash-mechanics)
+- [Smart Contract Architecture](#smart-contract-architecture)
+  - [Core Contracts (Base Mainnet)](#core-contracts-base-mainnet)
+  - [Key Functions](#key-functions)
+- [Agent Integration](#agent-integration)
+  - [Checking Trust Before Installation](#checking-trust-before-installation)
+  - [Automatic Trust Policies](#automatic-trust-policies)
+  - [Becoming an Auditor](#becoming-an-auditor)
+
+---
 
 ## Abstract
 
