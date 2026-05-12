@@ -10,6 +10,7 @@ ISNAD (إسناد) is a decentralized trust layer for AI resources. This documen
 - **[Jury System](./jury.md)** — How slashing and appeals work
 - **[API Reference](./api.md)** — REST API documentation
 - **[Smart Contracts](./contracts.md)** — On-chain architecture
+- **[GitLab CI Integration](./gitlab-ci.md)** — Run the scanner in GitLab CI and publish SAST reports
 
 ## Getting Started
 

@@ -35,6 +35,12 @@ npm run scan -- batch "./skills/**/*.js"
 npm run scan -- batch "./skills/**/*.js" --fail-fast
 ```
 
+### GitLab CI
+
+Use `scanner/examples/gitlab/.gitlab-ci.yml` to run ISNAD Scanner in GitLab CI. The template creates both native scanner JSON and GitLab SAST JSON artifacts.
+
+See [GitLab CI Integration](../docs/gitlab-ci.md) for setup and configuration.
+
 ### Generate evidence
 
 ```bash
