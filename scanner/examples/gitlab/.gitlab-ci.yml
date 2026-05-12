@@ -1,0 +1,30 @@
+stages:
+  - security
+
+variables:
+  ISNAD_SCAN_TARGETS: "**/*.{js,jsx,ts,tsx,mjs,cjs,json,yml,yaml}"
+  ISNAD_JSON_REPORT: "isnad-scan-results.json"
+  ISNAD_GITLAB_SAST_REPORT: "gl-sast-isnad.json"
+  ISNAD_FAIL_ON_FINDINGS: "true"
+
+isnad-scan:
+  stage: security
+  image: node:20-alpine
+  before_script:
+    - npm ci
+    - npm run build
+  script:
+    - npm --silent run scan -- batch "$ISNAD_SCAN_TARGETS" --json > "$ISNAD_JSON_REPORT"
+    - node scripts/isnad-to-gitlab-sast.mjs "$ISNAD_JSON_REPORT" "$ISNAD_GITLAB_SAST_REPORT"
+    - |
+      if [ "$ISNAD_FAIL_ON_FINDINGS" = "true" ]; then
+        node -e "const fs=require('fs'); const r=JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); process.exit(r.vulnerabilities.length ? 1 : 0)" "$ISNAD_GITLAB_SAST_REPORT"
+      fi
+  artifacts:
+    when: always
+    paths:
+      - "$ISNAD_JSON_REPORT"
+      - "$ISNAD_GITLAB_SAST_REPORT"
+    reports:
+      sast: "$ISNAD_GITLAB_SAST_REPORT"
+    expire_in: 1 week

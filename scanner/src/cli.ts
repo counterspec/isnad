@@ -185,7 +185,9 @@ program
       return;
     }
 
-    console.log(chalk.blue(`Scanning ${files.length} files...\n`));
+    if (!options.json) {
+      console.log(chalk.blue(`Scanning ${files.length} files...\n`));
+    }
 
     const results: { file: string; result: AnalysisResult }[] = [];
     let hasHighRisk = false;
