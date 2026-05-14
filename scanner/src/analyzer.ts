@@ -48,6 +48,45 @@ const RISK_THRESHOLDS = {
   low: 10
 };
 
+const SENSITIVE_CONTEXT_PATTERN =
+  /process\.env(?:\[[^\]]*(?:TOKEN|SECRET|KEY|PASSWORD|PWD|CREDENTIAL|PRIVATE)[^\]]*\]|\.(?:[A-Z0-9_]*(?:TOKEN|SECRET|KEY|PASSWORD|PWD|CREDENTIAL|PRIVATE)[A-Z0-9_]*))|document\.cookie|localStorage|sessionStorage|\.env|id_rsa|id_ed25519|credentials|privateKey|api[_-]?key|password/i;
+
+const BENIGN_ENV_NAME_PATTERN =
+  /^(?:NODE_ENV|PORT|HOST|HOSTNAME|CI|DEBUG|LOG_LEVEL|TZ|LANG|PATH|HOME|PWD|TMPDIR|TEMP|PUBLIC_[A-Z0-9_]+|NEXT_PUBLIC_[A-Z0-9_]+|VITE_[A-Z0-9_]+|[A-Z0-9_]+_(?:URL|URI|HOST|PORT|ORIGIN|BASE_URL|ENDPOINT)|(?:API|APP|SITE|BASE)_(?:URL|URI|HOST|PORT|ORIGIN|ENDPOINT))$/;
+
+function isBenignDynamicFetch(contextLine: string): boolean {
+  if (SENSITIVE_CONTEXT_PATTERN.test(contextLine)) {
+    return false;
+  }
+  return /fetch\s*\(\s*(?:url|uri|endpoint|apiUrl|apiEndpoint|requestUrl|resource|input)\b/i.test(contextLine);
+}
+
+function getEnvNames(contextLine: string): string[] {
+  const names: string[] = [];
+  for (const match of contextLine.matchAll(/process\.env(?:\.([A-Z0-9_]+)|\[\s*['"`]([^'"`]+)['"`]\s*\])/gi)) {
+    const envName = match[1] ?? match[2];
+    if (envName) {
+      names.push(envName.toUpperCase());
+    }
+  }
+  return names;
+}
+
+function isBenignEnvConfigAccess(contextLine: string): boolean {
+  const envNames = getEnvNames(contextLine);
+  return envNames.length > 0 && envNames.every((envName) => BENIGN_ENV_NAME_PATTERN.test(envName));
+}
+
+function isContextAllowlisted(pattern: Pattern, contextLine: string): boolean {
+  if (pattern.id === 'EXFIL_FETCH_DYNAMIC' && isBenignDynamicFetch(contextLine)) {
+    return true;
+  }
+  if (pattern.id === 'CRED_ENV_ACCESS' && isBenignEnvConfigAccess(contextLine)) {
+    return true;
+  }
+  return ALLOWLIST_PATTERNS.some(allowPattern => allowPattern.test(contextLine));
+}
+
 /**
  * Analyze content for security issues
  */
@@ -72,9 +111,7 @@ export function analyzeContent(content: string, resourceHash?: string): Analysis
       const contextLine = lines[lineNumber - 1] || '';
 
       // Check if this is in an allowlisted context
-      const isAllowlisted = ALLOWLIST_PATTERNS.some(allowPattern => 
-        allowPattern.test(contextLine)
-      );
+      const isAllowlisted = isContextAllowlisted(pattern, contextLine);
 
       if (!isAllowlisted) {
         findings.push({
