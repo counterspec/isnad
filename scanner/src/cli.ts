@@ -4,10 +4,11 @@
  */
 
 import { Command } from 'commander';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import chalk from 'chalk';
 import { analyzeContent, formatResult, type AnalysisResult } from './analyzer.js';
+import { toGitLabSastReport } from './gitlab.js';
 import { submitFlag, checkBalance, createEvidencePackage, hashEvidence, type OracleConfig } from './oracle.js';
 import { createHash } from 'crypto';
 import 'dotenv/config';
@@ -235,6 +236,39 @@ program
     }
 
     if (hasHighRisk) {
+      process.exit(1);
+    }
+  });
+
+// GitLab SAST command
+program
+  .command('gitlab-sast')
+  .description('Scan files and write a GitLab SAST report')
+  .argument('<pattern>', 'Glob pattern for files to scan')
+  .option('-o, --output <file>', 'Output report path', 'gl-sast-report.json')
+  .option('--fail-on-findings', 'Exit with code 1 when high or critical findings are present')
+  .action(async (pattern: string, options) => {
+    const { glob } = await import('glob');
+    const files = await glob(pattern, { nodir: true });
+    const results: { file: string; result: AnalysisResult }[] = [];
+    let hasHighRisk = false;
+
+    for (const file of files) {
+      const content = readFileSync(file, 'utf-8');
+      const resourceHash = `0x${createHash('sha256').update(content).digest('hex')}`;
+      const result = analyzeContent(content, resourceHash);
+      results.push({ file, result });
+      if (result.riskLevel === 'critical' || result.riskLevel === 'high') {
+        hasHighRisk = true;
+      }
+    }
+
+    const report = toGitLabSastReport(results);
+    writeFileSync(options.output, `${JSON.stringify(report, null, 2)}\n`);
+    console.log(chalk.green(`Wrote GitLab SAST report to ${options.output}`));
+    console.log(chalk.blue(`Scanned ${files.length} files; ${report.vulnerabilities.length} findings reported`));
+
+    if (options.failOnFindings && hasHighRisk) {
       process.exit(1);
     }
   });

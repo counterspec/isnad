@@ -1,0 +1,21 @@
+stages:
+  - security
+
+isnad-scan:
+  image: node:20
+  stage: security
+  variables:
+    ISNAD_SCAN_TARGETS: "**/*.{js,ts,mjs,cjs}"
+  before_script:
+    - cd scanner
+    - npm ci
+    - npm run build
+  script:
+    - npm run scan -- gitlab-sast "$ISNAD_SCAN_TARGETS" --output "gl-sast-report.json"
+  artifacts:
+    when: always
+    reports:
+      sast: scanner/gl-sast-report.json
+    paths:
+      - scanner/gl-sast-report.json
+  allow_failure: true
