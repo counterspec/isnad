@@ -26,6 +26,10 @@ $ISNAD applies this ancient wisdom to code provenance.
 
 - [Whitepaper](WHITEPAPER.md) — Full protocol specification
 
+**Languages:** [English](README.md) | [中文](README.zh-CN.md)
+
+- [中文文档](docs/zh-CN/) — 安装、使用指南和 API 参考
+
 ## Status
 
 🚧 **Draft** — Seeking feedback before launch.
