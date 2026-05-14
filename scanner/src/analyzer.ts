@@ -72,7 +72,7 @@ export function analyzeContent(content: string, resourceHash?: string): Analysis
       const contextLine = lines[lineNumber - 1] || '';
 
       // Check if this is in an allowlisted context
-      const isAllowlisted = ALLOWLIST_PATTERNS.some(allowPattern => 
+      const isAllowlisted = pattern.category !== 'websocket_c2' && ALLOWLIST_PATTERNS.some(allowPattern =>
         allowPattern.test(contextLine)
       );
 
