@@ -71,6 +71,46 @@ export const DANGEROUS_PATTERNS: Pattern[] = [
     pattern: /btoa\s*\(|Buffer\.from\(.*\)\.toString\s*\(\s*['"`]base64['"`]\s*\)/gi,
     category: 'exfiltration'
   },
+  {
+    id: 'EXFIL_BASE64_URL',
+    name: 'Base64 Encoded Exfiltration URL',
+    description: 'Encoded http(s) endpoint used to hide an exfiltration destination',
+    severity: 'critical',
+    pattern: /(?:atob|Buffer\.from)\s*\(\s*['"`](?:aHR0cHM6Ly|aHR0cDovL)[A-Za-z0-9+/=]{8,}['"`](?:\s*,\s*['"`]base64['"`])?/gi,
+    category: 'exfiltration'
+  },
+  {
+    id: 'EXFIL_HEX_URL',
+    name: 'Hex Encoded Exfiltration URL',
+    description: 'Hex encoded http(s) endpoint used to hide an exfiltration destination',
+    severity: 'critical',
+    pattern: /(?:Buffer\.from|bytes\.fromhex|binascii\.unhexlify)\s*\(\s*['"`](?:68747470733a2f2f|687474703a2f2f)[0-9a-f]{12,}['"`]\s*(?:,\s*['"`]hex['"`])?/gi,
+    category: 'exfiltration'
+  },
+  {
+    id: 'EXFIL_CHARCODE_URL',
+    name: 'CharCode Constructed Exfiltration URL',
+    description: 'HTTP endpoint constructed from character codes',
+    severity: 'critical',
+    pattern: /(?:String\.fromCharCode\s*\(\s*104\s*,\s*116\s*,\s*116\s*,\s*112|(?:chr\s*\(\s*104\s*\)\s*\+\s*)?chr\s*\(\s*104\s*\)\s*\+\s*chr\s*\(\s*116\s*\)\s*\+\s*chr\s*\(\s*116\s*\)\s*\+\s*chr\s*\(\s*112\s*\))/gi,
+    category: 'exfiltration'
+  },
+  {
+    id: 'EXFIL_REVERSED_URL',
+    name: 'Reversed Exfiltration URL',
+    description: 'HTTP endpoint hidden by reversing a string before use',
+    severity: 'high',
+    pattern: /['"`][^'"`]{6,}\/\/:s?ptth['"`]\s*\.split\s*\(\s*['"`]{0,2}\s*['"`]{0,2}\s*\)\s*\.reverse\s*\(\s*\)\s*\.join\s*\(\s*['"`]{0,2}\s*['"`]{0,2}\s*\)/gi,
+    category: 'exfiltration'
+  },
+  {
+    id: 'EXFIL_OBFUSCATED_ENV_SEND',
+    name: 'Obfuscated Credential Exfiltration',
+    description: 'Environment secrets are encoded or obfuscated near an outbound transmission',
+    severity: 'critical',
+    pattern: /(?:process\.env|os\.environ)[\s\S]{0,400}(?:TOKEN|SECRET|PASSWORD|PRIVATE|KEY|AWS_|NPM_|GITHUB_)[\s\S]{0,400}(?:btoa|Buffer\.from|base64|hex|String\.fromCharCode|atob|reverse\s*\(|encodeURIComponent)[\s\S]{0,400}(?:fetch|axios|request|requests\.post|urllib3|https?\.request|sendBeacon)|(?:fetch|axios|request|requests\.post|urllib3|https?\.request|sendBeacon)[\s\S]{0,400}(?:btoa|Buffer\.from|base64|hex|String\.fromCharCode|atob|reverse\s*\(|encodeURIComponent)[\s\S]{0,400}(?:process\.env|os\.environ)[\s\S]{0,400}(?:TOKEN|SECRET|PASSWORD|PRIVATE|KEY|AWS_|NPM_|GITHUB_)/gi,
+    category: 'exfiltration'
+  },
 
   // === HIGH: Credential access ===
   {
