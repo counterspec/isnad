@@ -71,6 +71,38 @@ export const DANGEROUS_PATTERNS: Pattern[] = [
     pattern: /btoa\s*\(|Buffer\.from\(.*\)\.toString\s*\(\s*['"`]base64['"`]\s*\)/gi,
     category: 'exfiltration'
   },
+  {
+    id: 'WS_SUSPICIOUS_ENDPOINT',
+    name: 'Suspicious WebSocket Endpoint',
+    description: 'WebSocket connects to a raw IP, tunnel, webhook, or other suspicious C2-style endpoint',
+    severity: 'high',
+    pattern: /\b(?:new\s+)?WebSocket\s*\(\s*['"`]wss?:\/\/(?!(?:localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(?::|\/|$))(?:(?:\d{1,3}\.){3}\d{1,3}|[^'"`]*\b(?:ngrok|trycloudflare|serveo|localtunnel|webhook\.site|requestbin|interactsh|burpcollaborator|duckdns|no-ip|dynu)\b|[^'"`]*\.onion\b)[^'"`]*['"`]|(?:websocket\.create_connection|websockets\.connect)\s*\(\s*['"`]wss?:\/\/(?!(?:localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(?::|\/|$))(?:(?:\d{1,3}\.){3}\d{1,3}|[^'"`]*\b(?:ngrok|trycloudflare|serveo|localtunnel|webhook\.site|requestbin|interactsh|burpcollaborator|duckdns|no-ip|dynu)\b|[^'"`]*\.onion\b)[^'"`]*['"`]/gi,
+    category: 'websocket_c2'
+  },
+  {
+    id: 'WS_OBFUSCATED_ENDPOINT',
+    name: 'Obfuscated WebSocket Endpoint',
+    description: 'WebSocket endpoint is assembled with common obfuscation primitives',
+    severity: 'high',
+    pattern: /(?:\bnew\s+WebSocket\s*\(\s*(?:Buffer\.from|atob|String\.fromCharCode|decodeURIComponent|eval\s*\(|[^)]*\.split\s*\([^)]*\)\s*\.reverse\s*\(\)\s*\.join\s*\()|(?:Buffer\.from|atob|String\.fromCharCode|decodeURIComponent|eval\s*\()[\s\S]{0,240}\bnew\s+WebSocket\s*\()/gi,
+    category: 'websocket_c2'
+  },
+  {
+    id: 'WS_SECRET_EXFILTRATION',
+    name: 'WebSocket Secret Exfiltration',
+    description: 'Sensitive data appears to be sent over a WebSocket channel',
+    severity: 'critical',
+    pattern: /(?:\b(?:ws|socket|websocket|client|conn)\.send\s*\([\s\S]{0,240}(?:process\.env|os\.environ|document\.cookie|localStorage|sessionStorage|NPM_TOKEN|GITHUB_TOKEN|AWS_(?:ACCESS_KEY|SECRET)|PRIVATE_KEY|SECRET|TOKEN|api[_-]?key|password)|(?:process\.env|os\.environ|document\.cookie|localStorage|sessionStorage|NPM_TOKEN|GITHUB_TOKEN|AWS_(?:ACCESS_KEY|SECRET)|PRIVATE_KEY|SECRET|TOKEN|api[_-]?key|password)[\s\S]{0,240}\b(?:ws|socket|websocket|client|conn)\.send\s*\()/gi,
+    category: 'websocket_c2'
+  },
+  {
+    id: 'WS_REVERSE_SHELL',
+    name: 'WebSocket Reverse Shell',
+    description: 'WebSocket message handler appears to execute received commands',
+    severity: 'critical',
+    pattern: /(?:\b(?:new\s+)?WebSocket\b|websocket\.create_connection|websockets\.connect)[\s\S]{0,1000}(?:onmessage|\.on\s*\(\s*['"`]message['"`]|async\s+for\s+.*\s+in\s+websocket)[\s\S]{0,1000}(?:child_process|execSync|exec\s*\(|spawn\s*\(|spawnSync\s*\(|execFile\s*\(|subprocess\.Popen|os\.system|pty\.spawn|\/bin\/sh|cmd\.exe|powershell)/gi,
+    category: 'websocket_c2'
+  },
 
   // === HIGH: Credential access ===
   {
