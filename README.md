@@ -25,6 +25,7 @@ $ISNAD applies this ancient wisdom to code provenance.
 ## Documentation
 
 - [Whitepaper](WHITEPAPER.md) — Full protocol specification
+- [VS Code Extension](docs/VS_CODE_EXTENSION.md) — Inline scanner diagnostics for opened files
 
 ## Status
 

@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "description": "ISNAD Scanner - Detection oracle for malicious AI resources",
   "main": "dist/index.js",
+  "bin": {
+    "isnad-scan": "dist/cli.js",
+    "isnad-scanner": "dist/cli.js"
+  },
   "type": "module",
   "scripts": {
     "build": "tsc",

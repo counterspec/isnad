@@ -1,0 +1,150 @@
+{
+  "name": "isnad-inline-warnings",
+  "displayName": "ISNAD Inline Warnings",
+  "description": "Runs isnad-scan on VS Code documents and surfaces supply-chain risk findings inline.",
+  "version": "0.1.0",
+  "publisher": "isnad",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/counterspec/isnad.git",
+    "directory": "vscode-extension"
+  },
+  "files": [
+    "dist/**/*",
+    "LICENSE*",
+    "README.md",
+    "package.json"
+  ],
+  "engines": {
+    "vscode": "^1.89.0"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "ISNAD scans untrusted workspaces with a user-installed scanner command only. Workspace-local scanner binaries and custom scanner commands require Workspace Trust."
+    }
+  },
+  "categories": [
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "isnad",
+    "security",
+    "supply-chain",
+    "diagnostics"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:json",
+    "onLanguage:python",
+    "onCommand:isnad.scanCurrentFile",
+    "onCommand:isnad.scanWorkspace",
+    "onCommand:isnad.clearDiagnostics"
+  ],
+  "main": "./dist/src/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "tsc -p .",
+    "test": "npm run build && node --test dist/test/*.test.js",
+    "package": "vsce package --no-dependencies"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "isnad.scanCurrentFile",
+        "title": "ISNAD: Scan Current File"
+      },
+      {
+        "command": "isnad.scanWorkspace",
+        "title": "ISNAD: Scan Workspace"
+      },
+      {
+        "command": "isnad.clearDiagnostics",
+        "title": "ISNAD: Clear Diagnostics"
+      }
+    ],
+    "configuration": {
+      "title": "ISNAD",
+      "properties": {
+        "isnad.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable ISNAD inline scanning."
+        },
+        "isnad.scanSensitivity": {
+          "type": "string",
+          "default": "medium",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "description": "Minimum finding severity shown in diagnostics and inline decorations."
+        },
+        "isnad.scanOnOpen": {
+          "type": "boolean",
+          "default": true,
+          "description": "Scan supported files when they are opened."
+        },
+        "isnad.scanOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Scan supported files when they are saved."
+        },
+        "isnad.scanOnChange": {
+          "type": "boolean",
+          "default": false,
+          "description": "Scan while typing after the debounce interval."
+        },
+        "isnad.debounceMs": {
+          "type": "number",
+          "default": 750,
+          "minimum": 100,
+          "description": "Delay before scan-on-change runs."
+        },
+        "isnad.includeGlobs": {
+          "type": "array",
+          "default": [
+            "**/*.{js,jsx,ts,tsx,json,py,sol,rs,go}"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "description": "Workspace glob patterns used by ISNAD: Scan Workspace."
+        },
+        "isnad.excludeGlobs": {
+          "type": "array",
+          "default": [
+            "**/{node_modules,dist,build,.git}/**"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "description": "Workspace glob patterns excluded from scans."
+        },
+        "isnad.scannerCommand": {
+          "type": "string",
+          "default": "",
+          "description": "Optional scanner command. Leave empty to auto-detect a local built scanner or use isnad-scan/isnad-scanner on PATH."
+        },
+        "isnad.scanTimeoutMs": {
+          "type": "number",
+          "default": 10000,
+          "minimum": 1000,
+          "description": "Maximum time allowed for a single scanner run."
+        }
+      }
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.89.0",
+    "@vscode/vsce": "^2.15.0",
+    "typescript": "^5.3.0"
+  }
+}
