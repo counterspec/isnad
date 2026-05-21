@@ -2,7 +2,9 @@
  * ISNAD Scanner - Static Analysis Engine
  */
 
-import { DANGEROUS_PATTERNS, ALLOWLIST_PATTERNS, SAFE_DOMAINS, type Pattern } from './patterns.js';
+import { DANGEROUS_PATTERNS, ALLOWLIST_PATTERNS, SAFE_DOMAINS, HTTP_CLIENT_PATTERNS, LEGITIMATE_HTTP_CONTEXT, KNOWN_SAFE_ENDPOINTS, type Pattern } from './patterns.js';
+import { detectObfuscatedExfiltration, type ObfuscatedExfilResult } from './obfuscated-exfil.js';
+import { detectWebSocketC2, type WebSocketC2Result } from './websocket-c2.js';
 import { createHash } from 'crypto';
 
 export interface Finding {
@@ -32,6 +34,8 @@ export interface AnalysisResult {
   };
   analyzedAt: string;
   confidence: number;
+  obfuscatedExfil?: ObfuscatedExfilResult;
+  websocketC2?: WebSocketC2Result;
 }
 
 const SEVERITY_WEIGHTS = {
@@ -117,15 +121,76 @@ export function analyzeContent(content: string, resourceHash?: string): Analysis
   // Calculate confidence based on findings consistency
   const confidence = calculateConfidence(findings, content);
 
+  // Run advanced detectors
+  const obfuscatedExfil = detectObfuscatedExfiltration(content);
+  const websocketC2 = detectWebSocketC2(content);
+
+  // Add obfuscated exfil findings
+  if (obfuscatedExfil.hasObfuscatedExfil) {
+    for (const f of obfuscatedExfil.findings) {
+      findings.push({
+        patternId: `OBFUSC_EXFIL_${f.type.toUpperCase()}`,
+        name: `Obfuscated Exfiltration: ${f.type.replace(/_/g, ' ')}`,
+        description: f.description,
+        severity: f.severity,
+        category: 'obfuscated_exfiltration',
+        line: f.line,
+        column: f.column,
+        match: f.match.substring(0, 100),
+        context: f.context.substring(0, 200)
+      });
+    }
+  }
+
+  // Add WebSocket C2 findings
+  if (websocketC2.hasWebSocketC2) {
+    for (const f of websocketC2.findings) {
+      findings.push({
+        patternId: `WS_C2_${f.type.toUpperCase()}`,
+        name: `WebSocket C2: ${f.type.replace(/_/g, ' ')}`,
+        description: f.description,
+        severity: f.severity,
+        category: 'websocket_c2',
+        line: f.line,
+        column: f.column,
+        match: f.match.substring(0, 100),
+        context: f.context.substring(0, 200)
+      });
+    }
+  }
+
+  // Recalculate summary with all findings
+  const updatedSummary = {
+    total: findings.length,
+    critical: findings.filter(f => f.severity === 'critical').length,
+    high: findings.filter(f => f.severity === 'high').length,
+    medium: findings.filter(f => f.severity === 'medium').length,
+    low: findings.filter(f => f.severity === 'low').length
+  };
+
+  const updatedRiskScore = 
+    updatedSummary.critical * SEVERITY_WEIGHTS.critical +
+    updatedSummary.high * SEVERITY_WEIGHTS.high +
+    updatedSummary.medium * SEVERITY_WEIGHTS.medium +
+    updatedSummary.low * SEVERITY_WEIGHTS.low;
+
+  let updatedRiskLevel: AnalysisResult['riskLevel'] = 'clean';
+  if (updatedRiskScore >= RISK_THRESHOLDS.critical) updatedRiskLevel = 'critical';
+  else if (updatedRiskScore >= RISK_THRESHOLDS.high) updatedRiskLevel = 'high';
+  else if (updatedRiskScore >= RISK_THRESHOLDS.medium) updatedRiskLevel = 'medium';
+  else if (updatedRiskScore >= RISK_THRESHOLDS.low) updatedRiskLevel = 'low';
+
   return {
     resourceHash: resourceHash || `0x${contentHash.substring(0, 64)}`,
     contentHash: `0x${contentHash}`,
     findings,
-    riskScore,
-    riskLevel,
-    summary,
+    riskScore: updatedRiskScore,
+    riskLevel: updatedRiskLevel,
+    summary: updatedSummary,
     analyzedAt: new Date().toISOString(),
-    confidence
+    confidence,
+    obfuscatedExfil,
+    websocketC2
   };
 }
 
