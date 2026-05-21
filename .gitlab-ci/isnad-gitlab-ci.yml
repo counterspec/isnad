@@ -1,0 +1,207 @@
+# ISNAD Scanner - GitLab CI/CD Integration Template
+# https://isnad.md/docs/gitlab-ci
+#
+# Usage:
+#   1. Copy this template to your project root as `.gitlab-ci.yml`
+#   2. Or include it in your existing `.gitlab-ci.yml`:
+#      include:
+#        - local: '/path/to/isnad-gitlab-ci.yml'
+#
+#   3. Configure variables in Settings > CI/CD > Variables:
+#      - ISNAD_ORACLE_ADDRESS (optional): Oracle contract address
+#      - ISNAD_PRIVATE_KEY (optional): Private key for flag submissions
+#      - ISNAD_NETWORK (optional): 'testnet' or 'mainnet' (default: testnet)
+#
+#   4. Customize scan targets and severity thresholds as needed
+
+stages:
+  - security
+
+variables:
+  ISNAD_SCAN_TARGETS: "."
+  ISNAD_FAIL_ON_CRITICAL: "true"
+  ISNAD_FAIL_ON_HIGH: "true"
+  ISNAD_FAIL_ON_MEDIUM: "false"
+  ISNAD_OUTPUT_FORMAT: "json"
+  ISNAD_SARIF_OUTPUT: "isnad-report.sarif.json"
+  ISNAD_JSON_OUTPUT: "isnad-report.json"
+  ISNAD_NPM_VERSION: "latest"
+
+.isnad_scan_template:
+  stage: security
+  image: node:20-alpine
+  before_script:
+    - npm install -g @isnad/scanner@${ISNAD_NPM_VERSION}
+  artifacts:
+    when: always
+    reports:
+      lint:
+        - isnad-report.sarif.json
+    paths:
+      - isnad-report.json
+      - isnad-report.sarif.json
+    expire_in: 30 days
+  script:
+    - |
+      echo "ISNAD Scanner - GitLab Security Dashboard Integration"
+      echo "========================================================"
+      echo ""
+      echo "Scan targets: ${ISNAD_SCAN_TARGETS}"
+      echo "Output format: ${ISNAD_OUTPUT_FORMAT}"
+      echo ""
+
+      # Run scan
+      isnad-scanner scan ${ISNAD_SCAN_TARGETS} --json > ${ISNAD_JSON_OUTPUT} 2>&1 || true
+
+      # Check exit code
+      SCAN_EXIT=$?
+
+      # Convert to SARIF for GitLab Security Dashboard
+      node -e "
+        const fs = require('fs');
+        try {
+          const report = JSON.parse(fs.readFileSync('${ISNAD_JSON_OUTPUT}', 'utf-8'));
+          const sarif = {
+            \$schema: 'https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema.json',
+            version: '2.1.0',
+            runs: [{
+              tool: {
+                driver: {
+                  name: 'ISNAD Scanner',
+                  version: '0.1.0',
+                  informationUri: 'https://isnad.md',
+                  rules: Object.entries(
+                    report.findings || []
+                  ).reduce((acc, f) => {
+                    acc[f.patternId] = {
+                      id: f.patternId,
+                      shortDescription: { text: f.name },
+                      fullDescription: { text: f.description },
+                      helpUri: 'https://isnad.md/rules/' + f.patternId,
+                      defaultConfiguration: { level: f.severity === 'critical' ? 'error' : f.severity === 'high' ? 'error' : f.severity === 'medium' ? 'warning' : 'note' }
+                    };
+                    return acc;
+                  }, {})
+                }
+              },
+              results: (report.findings || []).map(f => ({
+                ruleId: f.patternId,
+                level: f.severity === 'critical' ? 'error' : f.severity === 'high' ? 'error' : f.severity === 'medium' ? 'warning' : 'note',
+                message: { text: f.description || f.name },
+                locations: [{
+                  physicalLocation: {
+                    artifactLocation: { uri: report.resourceHash },
+                    region: { startLine: f.line || 1 }
+                  }
+                }]
+              }))
+            }]
+          };
+          fs.writeFileSync('${ISNAD_SARIF_OUTPUT}', JSON.stringify(sarif, null, 2));
+          console.log('SARIF report generated: ${ISNAD_SARIF_OUTPUT}');
+        } catch(e) {
+          console.error('Failed to generate SARIF:', e.message);
+          process.exit(1);
+        }
+      "
+
+      echo ""
+      echo "Scan complete. Reports available as artifacts."
+      echo "  - JSON: ${ISNAD_JSON_OUTPUT}"
+      echo "  - SARIF: ${ISNAD_SARIF_OUTPUT}"
+
+      # Evaluate severity thresholds
+      CRITICAL_COUNT=$(node -e "const r=JSON.parse(require('fs').readFileSync('${ISNAD_JSON_OUTPUT}','utf-8')); console.log((r.findings||[]).filter(f=>f.severity==='critical').length)")
+      HIGH_COUNT=$(node -e "const r=JSON.parse(require('fs').readFileSync('${ISNAD_JSON_OUTPUT}','utf-8')); console.log((r.findings||[]).filter(f=>f.severity==='high').length)")
+      MEDIUM_COUNT=$(node -e "const r=JSON.parse(require('fs').readFileSync('${ISNAD_JSON_OUTPUT}','utf-8')); console.log((r.findings||[]).filter(f=>f.severity==='medium').length)")
+
+      echo ""
+      echo "Findings Summary:"
+      echo "  Critical: ${CRITICAL_COUNT}"
+      echo "  High:     ${HIGH_COUNT}"
+      echo "  Medium:   ${MEDIUM_COUNT}"
+
+      if [ "${ISNAD_FAIL_ON_CRITICAL}" = "true" ] && [ "${CRITICAL_COUNT}" -gt 0 ]; then
+        echo "Failing: Critical findings detected"
+        exit 1
+      fi
+
+      if [ "${ISNAD_FAIL_ON_HIGH}" = "true" ] && [ "${HIGH_COUNT}" -gt 0 ]; then
+        echo "Failing: High severity findings detected"
+        exit 1
+      fi
+
+      if [ "${ISNAD_FAIL_ON_MEDIUM}" = "true" ] && [ "${MEDIUM_COUNT}" -gt 0 ]; then
+        echo "Failing: Medium severity findings detected"
+        exit 1
+      fi
+
+      echo "Scan passed severity thresholds"
+  allow_failure:
+    exit_codes:
+      - 1
+
+# Full scan: Analyzes all files in the project
+isnad-full-scan:
+  extends: .isnad_scan_template
+  variables:
+    ISNAD_SCAN_TARGETS: "."
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Quick scan: Faster scan for PR pipelines (scans only changed files)
+isnad-quick-scan:
+  extends: .isnad_scan_template
+  variables:
+    ISNAD_SCAN_TARGETS: "."
+  script:
+    - |
+      # Get changed files in merge request
+      if [ "$CI_PIPELINE_SOURCE" = "merge_request_event" ]; then
+        CHANGED_FILES=$(git diff --name-only origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME...HEAD | grep -E '\.(js|ts|jsx|tsx|py|json)$' || true)
+        if [ -z "$CHANGED_FILES" ]; then
+          echo "No scannable files changed"
+          exit 0
+        fi
+        echo "Scanning changed files:"
+        echo "$CHANGED_FILES"
+        ISNAD_SCAN_TARGETS=$(echo "$CHANGED_FILES" | tr '\n' ' ')
+      fi
+
+      # Run scan on changed files only
+      isnad-scanner scan ${ISNAD_SCAN_TARGETS} --json > ${ISNAD_JSON_OUTPUT} 2>&1 || true
+
+      # Rest of the template logic...
+      echo "Quick scan complete"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# Flag submission: Submit high-confidence findings to ISNAD Oracle
+isnad-flag-submission:
+  stage: security
+  image: node:20-alpine
+  needs:
+    - isnad-full-scan
+  before_script:
+    - npm install -g @isnad/scanner@${ISNAD_NPM_VERSION}
+  script:
+    - |
+      if [ -z "$ISNAD_PRIVATE_KEY" ]; then
+        echo "ISNAD_PRIVATE_KEY not set. Skipping flag submission."
+        echo "Set ISNAD_PRIVATE_KEY in Settings > CI/CD > Variables to enable."
+        exit 0
+      fi
+
+      # Re-scan and flag high-confidence findings
+      isnad-scanner flag . \
+        --network ${ISNAD_NETWORK:-testnet} \
+        --dry-run
+
+      echo ""
+      echo "Review the dry-run output above."
+      echo "Remove --dry-run from the script to actually submit flags."
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+  allow_failure: true

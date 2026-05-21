@@ -168,6 +168,122 @@ export const DANGEROUS_PATTERNS: Pattern[] = [
     category: 'obfuscation'
   },
 
+  // === OBFUSCATED EXFILTRATION: Credential theft with obfuscation (Issue #1) ===
+  {
+    id: 'OBFUSC_EXFIL_B64_URL',
+    name: 'Base64-Encoded Exfiltration URL',
+    description: 'URLs encoded in base64 to hide exfiltration endpoints from static analysis',
+    severity: 'critical',
+    pattern: /(?:atob|Buffer\.from|base64.*decode|decode.*base64)\s*\([^)]*(?:https?:|ftp:|wss?:)/gi,
+    category: 'obfuscated_exfiltration'
+  },
+  {
+    id: 'OBFUSC_EXFIL_HEX_ENDPOINT',
+    name: 'Hex-Constructed API Endpoint',
+    description: 'API endpoints built from hex strings to evade detection',
+    severity: 'critical',
+    pattern: /(?:0x[0-9a-fA-F]{2}[^,;\n]*){4,}(?:String\.fromCharCode|fromCharCode|parseInt|Number\.parseInt)/gi,
+    category: 'obfuscated_exfiltration'
+  },
+  {
+    id: 'OBFUSC_EXFIL_CHARCODE_URL',
+    name: 'CharCode-Constructed URL',
+    description: 'URLs constructed from character codes to hide exfiltration targets',
+    severity: 'critical',
+    pattern: /String\.fromCharCode\s*\([^)]*(?:\.toString\s*\(\s*16\s*\)|0x[0-9a-fA-F])/gi,
+    category: 'obfuscated_exfiltration'
+  },
+  {
+    id: 'OBFUSC_EXFIL_REVERSED',
+    name: 'String Reversal Obfuscation',
+    description: 'Strings reversed at runtime to hide exfiltration URLs or credentials',
+    severity: 'high',
+    pattern: /\.(split|reverse|join)\s*\(\s*(?:['"]|''|"")\s*\)\s*\.{0,2}(?:split|reverse|join)/gi,
+    category: 'obfuscated_exfiltration'
+  },
+  {
+    id: 'OBFUSC_EXFIL_CONCAT_URL',
+    name: 'Concatenated URL Construction',
+    description: 'URLs built from concatenated fragments to evade static string matching',
+    severity: 'high',
+    pattern: /['"]https?(:|\\x3a)['"]\s*\+\s*['"]/gi,
+    category: 'obfuscated_exfiltration'
+  },
+  {
+    id: 'OBFUSC_EXFIL_ENV_SEND',
+    name: 'Environment Variable Harvesting with Obfuscated Transmission',
+    description: 'Collecting env vars and transmitting via encoded/obfuscated channels',
+    severity: 'critical',
+    pattern: /process\.env\s*\[[^\]]*\][^;]{0,200}(?:atob|btoa|base64|encodeURI|fromCharCode|0x[0-9a-fA-F])/gi,
+    category: 'obfuscated_exfiltration'
+  },
+  {
+    id: 'OBFUSC_EXFIL_TEMPLATE_LITERAL',
+    name: 'Template Literal URL Assembly',
+    description: 'Template literals used to dynamically assemble exfiltration URLs',
+    severity: 'high',
+    pattern: /`https?:\/\/\$\{[^}]+\}[^`]*(?:fetch|axios|request|http\.get|http\.post|XMLHttpRequest)/gi,
+    category: 'obfuscated_exfiltration'
+  },
+  {
+    id: 'OBFUSC_EXFIL_DECODE_FETCH',
+    name: 'Decoded Payload in Network Request',
+    description: 'Decoding obfuscated data immediately before sending over network',
+    severity: 'critical',
+    pattern: /(?:atob|Buffer\.from[^)]+base64|decodeURIComponent|decodeURI|unescape)\([^)]*\)[^;]{0,100}(?:fetch|axios|request|http\.get|http\.post|\.send\s*\()/gi,
+    category: 'obfuscated_exfiltration'
+  },
+
+  // === WEBSOCKET: Malicious WebSocket handler patterns (Issue #3) ===
+  {
+    id: 'WS_C2_CONNECTION',
+    name: 'WebSocket C2 Connection',
+    description: 'WebSocket connections used for command-and-control communication',
+    severity: 'critical',
+    pattern: /new\s+WebSocket\s*\(\s*['"`]wss?:\/\/[^'"`]+['"`]/gi,
+    category: 'websocket_c2'
+  },
+  {
+    id: 'WS_MESSAGE_HANDLER_EXFIL',
+    name: 'WebSocket Message Handler Data Exfiltration',
+    description: 'WebSocket onmessage handlers that process and forward received data',
+    severity: 'high',
+    pattern: /\.onmessage\s*=\s*(?:function|\([^)]*\)\s*=>|[^=])[^;]{0,200}(?:fetch|axios|http\.request|process\.env|fs\.(?:readFile|readdir))/gi,
+    category: 'websocket_c2'
+  },
+  {
+    id: 'WS_REVERSE_SHELL',
+    name: 'WebSocket Reverse Shell',
+    description: 'WebSocket handler executing system commands received from remote server',
+    severity: 'critical',
+    pattern: /(?:ws|WebSocket)\.on\s*\(\s*['"`]message['"`]\s*,[^;]{0,300}(?:exec|execSync|spawn|child_process|require\s*\(\s*['"`]child_process)/gi,
+    category: 'websocket_c2'
+  },
+  {
+    id: 'WS_DYNAMIC_URL',
+    name: 'WebSocket Dynamic URL Connection',
+    description: 'WebSocket connecting to dynamically constructed URLs (potential C2)',
+    severity: 'high',
+    pattern: /new\s+WebSocket\s*\(\s*[^'"`\s]/gi,
+    category: 'websocket_c2'
+  },
+  {
+    id: 'WS_DATA_EXFIL_CHANNEL',
+    name: 'WebSocket Data Exfiltration Channel',
+    description: 'Data collected and exfiltrated through an active WebSocket connection',
+    severity: 'high',
+    pattern: /\.(send|emit)\s*\([^)]{0,200}(?:process\.env|fs\.read|credential|password|token|secret)/gi,
+    category: 'websocket_c2'
+  },
+  {
+    id: 'WS_BINARY_PAYLOAD',
+    name: 'WebSocket Binary Payload Transfer',
+    description: 'Binary data sent or received via WebSocket (potential data tunnel)',
+    severity: 'medium',
+    pattern: /(?:ws|WebSocket)\.(?:on|addEventListener)\s*\(\s*['"`]message['"`]\s*,[^;]{0,200}(?:ArrayBuffer|Blob|Uint8Array|Buffer\.from)/gi,
+    category: 'websocket_c2'
+  },
+
   // === LOW: Suspicious but context-dependent ===
   {
     id: 'SUSP_CRYPTO_MINING',
@@ -195,6 +311,36 @@ export const ALLOWLIST_PATTERNS = [
   /console\.(log|error|warn|info)/gi,
   /JSON\.(parse|stringify)/gi,
   /Math\.(random|floor|ceil)/gi,
+];
+
+export const HTTP_CLIENT_PATTERNS = [
+  /\baxios\b/gi,
+  /\bfetch\s*\(/gi,
+  /\bnode-fetch\b/gi,
+  /\brequest\s*\(/gi,
+  /\burllib3\b/gi,
+  /\bgot\s*\(/gi,
+  /\bsuperagent\b/gi,
+  /\bneedle\b/gi,
+];
+
+export const LEGITIMATE_HTTP_CONTEXT = [
+  /\b(?:jest|mocha|vitest|cypress)\b/gi,
+  /(?:test|spec|mock|fixture)\.(?:js|ts|jsx|tsx)$/gi,
+  /\b(?:should|expect|assert)\b/gi,
+  /(?:\/test\/|\/tests\/|\/__tests__\/|\.test\.|\.spec\.)/gi,
+  /(?:example|demo|sample|fixture)/gi,
+];
+
+export const KNOWN_SAFE_ENDPOINTS = [
+  /api\.github\.com/gi,
+  /registry\.npmjs\.org/gi,
+  /pypi\.org/gi,
+  /api\.openai\.com/gi,
+  /api\.anthropic\.com/gi,
+  /googleapis\.com/gi,
+  /schemas\.microsoft\.com/gi,
+  /schema\.org/gi,
 ];
 
 /**
