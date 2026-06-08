@@ -9,6 +9,12 @@ Integrate ISNAD trust verification into your agent platform or skill marketplace
 - **CI/CD pipelines:** Block untrusted dependencies
 - **Wallets:** Warn users about unverified agent actions
 
+## GitLab CI
+
+Use `examples/gitlab/.gitlab-ci.yml` to run `isnad-scan` in GitLab merge request pipelines. Configure `ISNAD_SCAN_TARGETS` for your skills, prompts, and agent configs, and keep the generated JSON artifact for reviewer and auditor evidence.
+
+See [GitLab CI Integration](./gitlab-ci) for the full template, configurable targets, JSON output, and fail-fast settings.
+
 ## Quick Integration
 
 ### Option 1: API (Simplest)
