@@ -1,0 +1,34 @@
+stages:
+  - security
+
+variables:
+  ISNAD_SCAN_TARGETS: "skills/**/*.js prompts/**/*.md configs/**/*.json"
+  ISNAD_SCAN_OUTPUT: "isnad-scan-results.json"
+  ISNAD_SCAN_FAIL_FAST: "false"
+
+isnad_scan:
+  stage: security
+  image: node:20-alpine
+  before_script:
+    - npm install -g @isnad/scanner
+  script:
+    - |
+      set -eu
+
+      scan_args="batch ${ISNAD_SCAN_TARGETS} --json"
+      if [ "${ISNAD_SCAN_FAIL_FAST}" = "true" ]; then
+        scan_args="${scan_args} --fail-fast"
+      fi
+
+      isnad-scan ${scan_args} > "${ISNAD_SCAN_OUTPUT}"
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths:
+      - "${ISNAD_SCAN_OUTPUT}"
+    reports:
+      sast: "${ISNAD_SCAN_OUTPUT}"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+

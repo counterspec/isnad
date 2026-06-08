@@ -27,6 +27,7 @@ const sections = [
       { href: '/docs/contracts', label: 'Smart Contracts' },
       { href: '/docs/api', label: 'API Reference' },
       { href: '/docs/integration', label: 'Integration Guide' },
+      { href: '/docs/gitlab-ci', label: 'GitLab CI' },
     ]
   },
 ];
