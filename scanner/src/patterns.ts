@@ -141,6 +141,30 @@ export const DANGEROUS_PATTERNS: Pattern[] = [
     pattern: /dns\.resolve|dns\.lookup.*[+`$]/gi,
     category: 'network'
   },
+  {
+    id: 'NET_WEBSOCKET_INSECURE',
+    name: 'Insecure or Suspicious WebSocket Endpoint',
+    description: 'WebSocket connection uses plaintext transport or a commonly abused tunnel endpoint',
+    severity: 'high',
+    pattern: /(?:new\s+)?WebSocket\s*\(\s*['"`](?:ws:\/\/|wss:\/\/[^'"`]*(?:ngrok(?:-free)?\.app|ngrok\.io|requestbin|pipedream|webhook\.site))/gi,
+    category: 'network'
+  },
+  {
+    id: 'EXFIL_WEBSOCKET_SEND',
+    name: 'Sensitive Data Sent over WebSocket',
+    description: 'WebSocket send includes credentials, environment variables, or file contents',
+    severity: 'critical',
+    pattern: /\.\s*send\s*\(\s*(?:JSON\.stringify\s*\([^)]*)?(?:process\.env|readFile(?:Sync)?\s*\(|credentials?|private[_-]?key|secret|token)/gi,
+    category: 'exfiltration'
+  },
+  {
+    id: 'EXEC_WEBSOCKET_MESSAGE',
+    name: 'Command Execution from WebSocket Message',
+    description: 'WebSocket message handler passes remote data to a command execution function',
+    severity: 'critical',
+    pattern: /\.on\s*\(\s*['"`]message['"`]\s*,[\s\S]{0,300}\b(?:exec|execSync|spawn|spawnSync)\s*\(/gi,
+    category: 'code_execution'
+  },
 
   // === MEDIUM: Obfuscation ===
   {
