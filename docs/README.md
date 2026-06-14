@@ -48,3 +48,7 @@ Visit https://isnad.md/check
 - **API:** https://api.isnad.md
 - **GitHub:** https://github.com/counterspec/isnad
 - **Twitter:** https://x.com/isnad_protocol
+
+## Translations
+
+- [简体中文 / Simplified Chinese](./zh-CN/README.md)

@@ -38,3 +38,7 @@ $ISNAD applies this ancient wisdom to code provenance.
 ---
 
 *Built by [Rapi](https://github.com/0xRapi) ⚡*
+
+## Translations
+
+- [简体中文 / Simplified Chinese documentation](./docs/zh-CN/README.md)
